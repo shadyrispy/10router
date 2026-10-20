@@ -19,8 +19,9 @@
 import raccoon from "./providers/raccoon.js";
 import atomcode from "./providers/atomcode.js";
 import lobsterai from "./providers/lobsterai.js";
+import loomy from "./providers/loomy.js";
 
-const ADAPTERS = [raccoon, atomcode, lobsterai];
+const ADAPTERS = [raccoon, atomcode, lobsterai, loomy];
 
 export function getCheckinAdapters() {
   return ADAPTERS;

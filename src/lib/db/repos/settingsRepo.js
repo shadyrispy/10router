@@ -118,6 +118,7 @@ const DEFAULT_SETTINGS = {
   raccoonCheckin: false,
   atomcodeCheckin: false,
   lobsteraiCheckin: false,
+  loomyCheckin: false,
   // Provider-wide channel blocks: { [provider]: { until, lastAt, strikes } }.
   // Set when an upstream answers with a channel-scope error (e.g. CodeBuddy
   // 11128 "unapproved channel"): the failure belongs to the channel, so every
