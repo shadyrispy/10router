@@ -186,6 +186,18 @@ export async function PATCH(request) {
       }
     }
 
+    // W1 generic check-in adapters (raccoon / atomcode / lobsterai). One
+    // scheduler for all; refresh re-reads the toggles and starts or stops.
+    if (
+      Object.prototype.hasOwnProperty.call(body, "raccoonCheckin") ||
+      Object.prototype.hasOwnProperty.call(body, "atomcodeCheckin") ||
+      Object.prototype.hasOwnProperty.call(body, "lobsteraiCheckin")
+    ) {
+      import("@/sse/services/checkin/scheduler.js")
+        .then(({ refreshCheckinScheduler }) => refreshCheckinScheduler())
+        .catch((error) => console.warn("[Checkin] refresh failed:", error.message));
+    }
+
     const { password, oidcClientSecret, ...safeSettings } = settings;
     safeSettings.oidcConfigured = !!(safeSettings.oidcIssuerUrl && safeSettings.oidcClientId && oidcClientSecret);
     // Establishing protection used to kick the operator straight to the login

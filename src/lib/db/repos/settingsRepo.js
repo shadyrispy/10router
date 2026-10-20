@@ -109,6 +109,12 @@ const DEFAULT_SETTINGS = {
   minimaxCheckin: false,
   // Daily-done memo for MiniMax: { [connectionId]: "YYYY-MM-DD" }
   minimaxDailyDone: {},
+  // W1 generic check-in adapters (src/sse/services/checkin/). One key per
+  // adapter; the scheduler starts when any of them is true. Defaults stay false
+  // — enabling a check-in is an explicit opt-in, same as the three legacy ones.
+  raccoonCheckin: false,
+  atomcodeCheckin: false,
+  lobsteraiCheckin: false,
   // Provider-wide channel blocks: { [provider]: { until, lastAt, strikes } }.
   // Set when an upstream answers with a channel-scope error (e.g. CodeBuddy
   // 11128 "unapproved channel"): the failure belongs to the channel, so every
