@@ -7,12 +7,15 @@
 // successful POST), then it is memoized for the rest of the local day — no
 // more repeated "已签到" churn across the day.
 //
-// intl: CodeBuddy's activity campaign grants daily credits (Free 30 / Pro 50)
-// to accounts with ≥1 valid conversation request that day (official docs:
-// "当天有对话请求即视为活跃用户"). There is no claim endpoint, so the intl
-// pass sends one minimal stream chat request per active codebuddy-intl
-// connection per day on a free-tier model (rateMultiplier 0, ~0 credit cost),
-// memoized the same way. Experimental, separate settings toggle.
+// intl: RETIRED from the scheduler (see safeTick). CodeBuddy's activity
+// campaign grants daily credits (Free 30 / Pro 50) to accounts with ≥1 valid
+// conversation request that day, and the old pass sent one minimal stream chat
+// request per active codebuddy-intl connection per day on a free-tier model to
+// satisfy it. CreditDaddy has deleted the same mechanism and it only produced
+// pointless upstream traffic, so nothing schedules it anymore. The probe code
+// is kept below (with its unit tests) as a rollback path; the
+// `codeBuddyIntlSession` setting stays default-off and its UI toggle is
+// disabled. Do not wire it back into safeTick without a fresh measurement.
 //
 // Fail-open everywhere: a tick error or a single connection failure never
 // rejects the whole run or kills the server.
@@ -519,6 +522,9 @@ export async function runCodebuddyCheckinTick(deps = {}) {
  * connection so the day's "活跃赠送" credits are granted. Same memo/fail-open
  * contract as the CN tick.
  *
+ * RETIRED: no scheduler path calls this anymore (CreditDaddy deleted the same
+ * mechanism). Retained for the unit tests / a deliberate rollback only.
+ *
  * @param {{ loadConnections?: Function, refreshConnection?: Function,
  *           probeConnection?: Function, memo?: Record<string, string> }} [deps]
  * @returns {Promise<Array<{id: string, name: string, status: string, error?: string}>>}
@@ -802,12 +808,14 @@ async function safeTick(how) {
     } else {
       log.debug("CB_CN_COMP", `Scheduled ${how}: setting off, skipping`);
     }
-    if (settings.codeBuddyIntlSession === true) {
-      await runCodebuddyIntlSessionTick({ memo: done });
-      await persistDoneMap();
-    } else {
-      log.debug("CB_INTL_SESSION", `Scheduled ${how}: setting off, skipping`);
-    }
+    // RETIRED: the intl "one free-tier chat request per day as activity" pass
+    // is no longer scheduled. CreditDaddy removed this mechanism and upstream
+    // no longer needs the daily request; keeping it only produced pointless
+    // upstream traffic. The setting (codeBuddyIntlSession) and the probe
+    // functions below are retained for rollback/diagnostics, but nothing
+    // instantiates them from the scheduler. CN daily-checkin / compensation
+    // are unaffected.
+    log.debug("CB_INTL_SESSION", `Scheduled ${how}: daily active-session pass retired, skipping`);
   } catch (err) {
     log.warn("CB_CN_CHECKIN", `Scheduled ${how} rejected (swallowed)`, {
       error: err?.message ?? String(err),

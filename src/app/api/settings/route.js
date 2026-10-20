@@ -150,10 +150,10 @@ export async function PATCH(request) {
     // Experimental CodeBuddy CN auto check-in / compensation: when any toggle flips on at
     // runtime, (re)start the scheduler. It re-reads the flags on every fire, so
     // turning it off later needs no extra wiring. Module is idempotent.
+    // (The intl daily active-session probe is retired and no longer starts the scheduler.)
     if (
       (Object.prototype.hasOwnProperty.call(body, "codeBuddyCheckin") && settings.codeBuddyCheckin === true) ||
-      (Object.prototype.hasOwnProperty.call(body, "codeBuddyCompensation") && settings.codeBuddyCompensation === true) ||
-      (Object.prototype.hasOwnProperty.call(body, "codeBuddyIntlSession") && settings.codeBuddyIntlSession === true)
+      (Object.prototype.hasOwnProperty.call(body, "codeBuddyCompensation") && settings.codeBuddyCompensation === true)
     ) {
       import("@/sse/services/codebuddyCheckin.js")
         .then(({ startCodebuddyCheckin }) => startCodebuddyCheckin())
