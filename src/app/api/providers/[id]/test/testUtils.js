@@ -16,6 +16,12 @@ import {
   shouldRefreshCredentials,
 } from "open-sse/services/oauthCredentialManager.js";
 import {
+  LIVE_CATALOG_PROVIDERS,
+  catalogHasModel,
+} from "open-sse/services/liveCatalogs.js";
+import { resolveAtomcodeModelId } from "open-sse/shared/atomcode/catalog.js";
+import { isUnrecoverableRefreshError } from "open-sse/services/tokenRefresh.js";
+import {
   GEMINI_CONFIG,
   ANTIGRAVITY_CONFIG,
   KIRO_CONFIG,
@@ -73,15 +79,9 @@ const OAUTH_TEST_CONFIG = {
   // qoder / qoder-cn are handled by testQoderConnection (short-circuited at the
   // top of testOAuthConnection): the one-by-one picker can select a model, and
   // verifying it needs the account's live catalog, not a plain userinfo probe.
-  // Loomy: the business `/models` endpoint takes the SMS session in a bare
-  // `token` header (chat uses Bearer). 200 = healthy; 401/403 = re-login.
-  loomy: {
-    url: "https://loomyad.xunfei.cn/api/v1/models",
-    method: "GET",
-    authHeader: "token",
-    authPrefix: "",
-    extraHeaders: { Accept: "application/json" },
-  },
+  // loomy is handled by testLiveCatalogConnection: its `/models` response is
+  // also the live catalogue, so one credentialed fetch both validates the
+  // session and verifies the selected model.
   kimi: { checkExpiry: true, refreshable: true },
   "kimi-coding": { checkExpiry: true, refreshable: true },
   cursor: { tokenExists: true },
@@ -466,12 +466,109 @@ async function testQoderConnection(connection, effectiveProxy = null, options = 
   }
 }
 
+// ─── Live-catalogue validators ──────────────────────────────────────────────
+//
+// A token-existence check cannot tell a healthy session from a revoked one,
+// and a chat probe spends quota. Each of these providers exposes a cheap,
+// credential-gated model catalogue: fetching it proves the credential AND
+// verifies the model picker's selection against the account's real list.
+//
+// `normalize` maps a dashboard/picker id to the upstream spelling before the
+// comparison (AtomCode sends `display_model_name`, not its registry display).
+const LIVE_CATALOG_TESTS = {
+  loomy: { label: "Loomy" },
+  lobsterai: { label: "LobsterAI" },
+  atomcode: { label: "AtomCode", normalize: (model) => resolveAtomcodeModelId(model) },
+  raccoon: { label: "Raccoon" },
+  codearts: { label: "CodeArts", caseInsensitive: true },
+  officeace: { label: "OfficeAce" },
+  "trae-solo": { label: "Trae SOLO" },
+};
+
+async function testLiveCatalogConnection(connection, effectiveProxy = null, options = {}, provider = connection.provider) {
+  const spec = LIVE_CATALOG_TESTS[provider];
+  const resolve = LIVE_CATALOG_PROVIDERS[provider];
+  if (!spec || !resolve) return { valid: false, error: "Provider test not supported", refreshed: false };
+
+  let working = connection;
+  let refreshed = false;
+  let newTokens = null;
+
+  if (connection.refreshToken && shouldRefreshCredentials(provider, connection)) {
+    const tokens = await refreshProviderCredentials(provider, connection, console).catch(() => null);
+    if (isUnrecoverableRefreshError(tokens)) {
+      return {
+        valid: false,
+        error: "Refresh token was rejected — re-authorize this account",
+        refreshed: false,
+      };
+    }
+    if (tokens?.accessToken || tokens?.apiKey) {
+      working = {
+        ...connection,
+        ...tokens,
+        providerSpecificData: {
+          ...(connection.providerSpecificData || {}),
+          ...(tokens.providerSpecificData || {}),
+        },
+      };
+      refreshed = true;
+      newTokens = tokens;
+    }
+  }
+
+  let catalog;
+  try {
+    catalog = await resolve(working, {
+      // A Test button describes the account NOW, not the 10-minute cache.
+      forceRefresh: true,
+      // ...and must not pass on a stale catalogue when the credential is dead.
+      allowStale: false,
+      proxyOptions: effectiveProxy,
+    });
+  } catch (error) {
+    return {
+      valid: false,
+      error: `${spec.label} model catalogue unavailable: ${error?.message || error}`,
+      refreshed,
+      newTokens,
+    };
+  }
+
+  const models = catalog?.models || [];
+  if (!models.length) {
+    return {
+      valid: false,
+      error: `${spec.label} returned no models for this account`,
+      refreshed,
+      newTokens,
+    };
+  }
+
+  if (options.model) {
+    const requested = spec.normalize ? spec.normalize(options.model) : options.model;
+    if (!catalogHasModel(models, requested, { caseInsensitive: spec.caseInsensitive })) {
+      return {
+        valid: false,
+        error: `Model "${options.model}" is not available on this ${spec.label} account`,
+        refreshed,
+        newTokens,
+      };
+    }
+  }
+
+  return { valid: true, error: null, refreshed, newTokens };
+}
+
 async function testOAuthConnection(connection, effectiveProxy = null, options = {}) {
   // Qoder's test is model-aware and needs the live catalog — handled here, not
   // via OAUTH_TEST_CONFIG (which qoder-cn was never in, so it answered "Provider
   // test not supported" for an otherwise healthy account).
   if (connection.provider === "qoder" || connection.provider === "qoder-cn") {
     return testQoderConnection(connection, effectiveProxy, options);
+  }
+  if (LIVE_CATALOG_TESTS[connection.provider]) {
+    return testLiveCatalogConnection(connection, effectiveProxy, options);
   }
   const config = OAUTH_TEST_CONFIG[connection.provider];
   if (!config) return { valid: false, error: "Provider test not supported", refreshed: false };
@@ -628,6 +725,12 @@ async function fetchWithConnectionProxy(url, options = {}, effectiveProxy = null
 
 async function testApiKeyConnection(connection, effectiveProxy = null, options = {}) {
   const { model } = options;
+  // These providers store non-Bearer credentials (Loomy session, Raccoon JWT,
+  // CodeArts AK/SK, OfficeAce Basic) but all expose a catalogue endpoint, which
+  // is both cheaper and more truthful than a chat probe.
+  if (LIVE_CATALOG_TESTS[connection.provider]) {
+    return testLiveCatalogConnection(connection, effectiveProxy, options);
+  }
   if (isOpenAICompatibleProvider(connection.provider)) {
     const modelsBase = connection.providerSpecificData?.baseUrl;
     if (!modelsBase) return { valid: false, error: "Missing base URL" };

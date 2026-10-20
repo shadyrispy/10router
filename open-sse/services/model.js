@@ -30,6 +30,31 @@ const STRICT_MODEL_PROVIDERS = new Set(
   REGISTRY.filter((entry) => entry.strictModels === true).map((entry) => entry.id)
 );
 
+// Model ids a provider advertised through an authenticated live catalogue
+// (open-sse/services/liveCatalogs.js). A strict provider's registry list is an
+// offline floor, not the upstream contract: Loomy / Raccoon add and retire
+// models server-side, and rejecting a freshly advertised id would make the
+// live sync useless. Only ids observed from THAT provider's catalogue are
+// admitted; the static list stays authoritative when a fetch fails.
+const LIVE_MODEL_IDS = new Map();
+
+/** Record a successful live-catalogue fetch for `provider`. */
+export function rememberLiveModels(provider, ids) {
+  if (!provider || !Array.isArray(ids)) return;
+  const next = new Set(
+    ids
+      .filter((id) => typeof id === "string" && id.trim())
+      .map((id) => id.trim())
+  );
+  if (next.size === 0) return;
+  LIVE_MODEL_IDS.set(provider, next);
+}
+
+/** Test/refresh helper: drop the live set for one provider. */
+export function forgetLiveModels(provider) {
+  LIVE_MODEL_IDS.delete(provider);
+}
+
 export function isStrictModelProvider(provider) {
   return !!provider && STRICT_MODEL_PROVIDERS.has(provider);
 }
@@ -46,7 +71,8 @@ export function isModelAllowedForProvider(provider, modelId) {
   if (!isStrictModelProvider(provider)) return true;
   if (typeof modelId !== "string" || !modelId.trim()) return false;
   const baseId = modelId.replace(/\([^()]+\)\s*$/, "").trim();
-  return isValidModel(provider, baseId);
+  if (isValidModel(provider, baseId)) return true;
+  return LIVE_MODEL_IDS.get(provider)?.has(baseId) === true;
 }
 
 /**

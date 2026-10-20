@@ -18,7 +18,8 @@ import { PROVIDERS } from "../config/providers.js";
 // Node/HTTP only. Tokens are never logged.
 
 const STREAM_TIMEOUT_MS = parseInt(process.env.TRAE_SOLO_STREAM_TIMEOUT_MS || "300000", 10);
-const AGENT_BASE_URL = (process.env.TRAE_SOLO_AGENT_BASE_URL || "https://trae-api-cn.mchost.guru").replace(/\/$/, "");
+export const TRAE_SOLO_AGENT_BASE_URL = (process.env.TRAE_SOLO_AGENT_BASE_URL || "https://trae-api-cn.mchost.guru").replace(/\/$/, "");
+const AGENT_BASE_URL = TRAE_SOLO_AGENT_BASE_URL;
 const CHAT_PATH = "/api/agent/v3/llm_utils_chat";
 
 const SOLO_FUNCTION = "solo_work_lite";
@@ -554,6 +555,45 @@ function frameToSse(frame) {
   return `data: ${JSON.stringify(frame.value)}\n\n`;
 }
 
+/**
+ * Identity / fingerprint headers for the SOLO agent gateway.
+ *
+ * Exported because the model catalogue (`/api/ide/v1/get_detail_param`) lives
+ * on the same gateway and is gated by the SAME version + identity headers: a
+ * catalogue request built from a second copy would drift the moment either
+ * side changes, and the failure mode is an empty catalogue that looks like
+ * "this account has no models".
+ */
+export function buildTraeSoloHeaders(credentials, { accept = "text/event-stream" } = {}) {
+  const token = credentials?.accessToken || credentials?.apiKey || "";
+  const psd = credentials?.providerSpecificData || {};
+  const headers = {
+    Accept: accept,
+    "Content-Type": "application/json",
+    "User-Agent": CLIENT_USER_AGENT,
+    // The same token is carried in three headers; missing one is treated as
+    // anonymous by upstream while still answering HTTP 200.
+    Authorization: `Cloud-IDE-JWT ${token}`,
+    "X-Cloudide-Token": token,
+    "X-Ide-Token": token,
+    "X-App-Id": APP_ID,
+    "X-App-Version": psd.appVersion || "default",
+    "X-Ide-Version": IDE_VERSION,
+    "X-Ide-Version-Code": IDE_VERSION_CODE,
+    "X-App-Version-Code": IDE_VERSION_CODE,
+    "X-Ide-Version-Type": "stable",
+    "X-Device-Type": "windows",
+    "X-OS-Version": OS_VERSION,
+    "X-Device-Brand": DEVICE_BRAND,
+    "Request-Traffic-Type": "prod",
+  };
+  // Empty identity headers must be omitted, not sent blank.
+  if (psd.userId) headers["X-Uid"] = String(psd.userId);
+  if (psd.machineId) headers["X-Machine-Id"] = String(psd.machineId);
+  if (psd.deviceId) headers["X-Device-Id"] = String(psd.deviceId);
+  return headers;
+}
+
 export default class TraeSoloExecutor extends BaseExecutor {
   constructor() {
     super("trae-solo", PROVIDERS["trae-solo"]);
@@ -564,33 +604,7 @@ export default class TraeSoloExecutor extends BaseExecutor {
   }
 
   buildHeaders(credentials) {
-    const token = credentials?.accessToken || credentials?.apiKey || "";
-    const psd = credentials?.providerSpecificData || {};
-    const headers = {
-      Accept: "text/event-stream",
-      "Content-Type": "application/json",
-      "User-Agent": CLIENT_USER_AGENT,
-      // The same token is carried in three headers; missing one is treated as
-      // anonymous by upstream while still answering HTTP 200.
-      Authorization: `Cloud-IDE-JWT ${token}`,
-      "X-Cloudide-Token": token,
-      "X-Ide-Token": token,
-      "X-App-Id": APP_ID,
-      "X-App-Version": psd.appVersion || "default",
-      "X-Ide-Version": IDE_VERSION,
-      "X-Ide-Version-Code": IDE_VERSION_CODE,
-      "X-App-Version-Code": IDE_VERSION_CODE,
-      "X-Ide-Version-Type": "stable",
-      "X-Device-Type": "windows",
-      "X-OS-Version": OS_VERSION,
-      "X-Device-Brand": DEVICE_BRAND,
-      "Request-Traffic-Type": "prod",
-    };
-    // Empty identity headers must be omitted, not sent blank.
-    if (psd.userId) headers["X-Uid"] = String(psd.userId);
-    if (psd.machineId) headers["X-Machine-Id"] = String(psd.machineId);
-    if (psd.deviceId) headers["X-Device-Id"] = String(psd.deviceId);
-    return headers;
+    return buildTraeSoloHeaders(credentials);
   }
 
   async execute({ model, body, stream, credentials, signal, log, proxyOptions = null }) {
