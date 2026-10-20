@@ -95,6 +95,25 @@ exports[`GOLDEN buildHeaders (default executor providers) > alims-intl → heade
 }
 `;
 
+exports[`GOLDEN buildHeaders (default executor providers) > alitp-cn → headers (apiKey / oauth) 1`] = `
+{
+  "apiKey": {
+    "Accept": "text/event-stream",
+    "Authorization": "Bearer <TOK>",
+    "Content-Type": "application/json",
+  },
+  "nonStream": {
+    "Authorization": "Bearer <TOK>",
+    "Content-Type": "application/json",
+  },
+  "oauth": {
+    "Accept": "text/event-stream",
+    "Authorization": "Bearer <TOK>",
+    "Content-Type": "application/json",
+  },
+}
+`;
+
 exports[`GOLDEN buildHeaders (default executor providers) > alitp-intl → headers (apiKey / oauth) 1`] = `
 {
   "apiKey": {
@@ -217,6 +236,28 @@ exports[`GOLDEN buildHeaders (default executor providers) > assemblyai → heade
     "Accept": "text/event-stream",
     "Authorization": "Bearer <TOK>",
     "Content-Type": "application/json",
+  },
+}
+`;
+
+exports[`GOLDEN buildHeaders (default executor providers) > atomcode → headers (apiKey / oauth) 1`] = `
+{
+  "apiKey": {
+    "Accept": "text/event-stream",
+    "Authorization": "Bearer <TOK>",
+    "Content-Type": "application/json",
+    "User-Agent": "10router-atomcode/1.0",
+  },
+  "nonStream": {
+    "Authorization": "Bearer <TOK>",
+    "Content-Type": "application/json",
+    "User-Agent": "10router-atomcode/1.0",
+  },
+  "oauth": {
+    "Accept": "text/event-stream",
+    "Authorization": "Bearer <TOK>",
+    "Content-Type": "application/json",
+    "User-Agent": "10router-atomcode/1.0",
   },
 }
 `;
@@ -1057,6 +1098,28 @@ exports[`GOLDEN buildHeaders (default executor providers) > llm7 → headers (ap
 }
 `;
 
+exports[`GOLDEN buildHeaders (default executor providers) > lobsterai → headers (apiKey / oauth) 1`] = `
+{
+  "apiKey": {
+    "Accept": "text/event-stream",
+    "Authorization": "Bearer <TOK>",
+    "Content-Type": "application/json",
+    "User-Agent": "LobsterAI/0.1.0",
+  },
+  "nonStream": {
+    "Authorization": "Bearer <TOK>",
+    "Content-Type": "application/json",
+    "User-Agent": "LobsterAI/0.1.0",
+  },
+  "oauth": {
+    "Accept": "text/event-stream",
+    "Authorization": "Bearer <TOK>",
+    "Content-Type": "application/json",
+    "User-Agent": "LobsterAI/0.1.0",
+  },
+}
+`;
+
 exports[`GOLDEN buildHeaders (default executor providers) > longcat → headers (apiKey / oauth) 1`] = `
 {
   "apiKey": {
@@ -1197,6 +1260,28 @@ exports[`GOLDEN buildHeaders (default executor providers) > minimax-code-global 
     "User-Agent": "MiniMaxAgent",
     "X-Mavis-Agent-Id": "main",
     "anthropic-version": "2023-06-01",
+  },
+}
+`;
+
+exports[`GOLDEN buildHeaders (default executor providers) > minimax-free → headers (apiKey / oauth) 1`] = `
+{
+  "apiKey": {
+    "Accept": "text/event-stream",
+    "Content-Type": "application/json",
+    "anthropic-version": "2023-06-01",
+    "x-api-key": undefined,
+  },
+  "nonStream": {
+    "Content-Type": "application/json",
+    "anthropic-version": "2023-06-01",
+    "x-api-key": undefined,
+  },
+  "oauth": {
+    "Accept": "text/event-stream",
+    "Content-Type": "application/json",
+    "anthropic-version": "2023-06-01",
+    "x-api-key": undefined,
   },
 }
 `;
@@ -1482,6 +1567,26 @@ exports[`GOLDEN buildHeaders (default executor providers) > poolside → headers
     "Content-Type": "application/json",
   },
   "nonStream": {
+    "Authorization": "Bearer <TOK>",
+    "Content-Type": "application/json",
+  },
+  "oauth": {
+    "Accept": "text/event-stream",
+    "Authorization": "Bearer <TOK>",
+    "Content-Type": "application/json",
+  },
+}
+`;
+
+exports[`GOLDEN buildHeaders (default executor providers) > raccoon → headers (apiKey / oauth) 1`] = `
+{
+  "apiKey": {
+    "Accept": "text/event-stream",
+    "Authorization": "Bearer <TOK>",
+    "Content-Type": "application/json",
+  },
+  "nonStream": {
+    "Accept": "*/*",
     "Authorization": "Bearer <TOK>",
     "Content-Type": "application/json",
   },
@@ -2006,6 +2111,13 @@ exports[`GOLDEN buildUrl (default executor providers) > alims-intl → url (stre
 }
 `;
 
+exports[`GOLDEN buildUrl (default executor providers) > alitp-cn → url (stream + non-stream) 1`] = `
+{
+  "nonStream": "https://token-plan.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions",
+  "stream": "https://token-plan.cn-beijing.maas.aliyuncs.com/compatible-mode/v1/chat/completions",
+}
+`;
+
 exports[`GOLDEN buildUrl (default executor providers) > alitp-intl → url (stream + non-stream) 1`] = `
 {
   "nonStream": "https://token-plan.ap-southeast-1.maas.aliyuncs.com/compatible-mode/v1/chat/completions",
@@ -2045,6 +2157,13 @@ exports[`GOLDEN buildUrl (default executor providers) > assemblyai → url (stre
 {
   "nonStream": "https://api.assemblyai.com/v1/audio/transcriptions",
   "stream": "https://api.assemblyai.com/v1/audio/transcriptions",
+}
+`;
+
+exports[`GOLDEN buildUrl (default executor providers) > atomcode → url (stream + non-stream) 1`] = `
+{
+  "nonStream": "https://api-ai.gitcode.com/v1/chat/completions",
+  "stream": "https://api-ai.gitcode.com/v1/chat/completions",
 }
 `;
 
@@ -2293,6 +2412,13 @@ exports[`GOLDEN buildUrl (default executor providers) > llm7 → url (stream + n
 }
 `;
 
+exports[`GOLDEN buildUrl (default executor providers) > lobsterai → url (stream + non-stream) 1`] = `
+{
+  "nonStream": "https://lobsterai-server.youdao.com/api/proxy/v1/chat/completions",
+  "stream": "https://lobsterai-server.youdao.com/api/proxy/v1/chat/completions",
+}
+`;
+
 exports[`GOLDEN buildUrl (default executor providers) > longcat → url (stream + non-stream) 1`] = `
 {
   "nonStream": "https://api.longcat.chat/openai/v1/chat/completions",
@@ -2332,6 +2458,13 @@ exports[`GOLDEN buildUrl (default executor providers) > minimax-code-global → 
 {
   "nonStream": "https://agent.minimax.io/mavis/api/v1/llm/v1/messages",
   "stream": "https://agent.minimax.io/mavis/api/v1/llm/v1/messages",
+}
+`;
+
+exports[`GOLDEN buildUrl (default executor providers) > minimax-free → url (stream + non-stream) 1`] = `
+{
+  "nonStream": "http://127.0.0.1:47860/gateway/minimax/v1/messages",
+  "stream": "http://127.0.0.1:47860/gateway/minimax/v1/messages",
 }
 `;
 
@@ -2437,6 +2570,13 @@ exports[`GOLDEN buildUrl (default executor providers) > poolside → url (stream
 {
   "nonStream": "https://inference.poolside.ai/v1/chat/completions",
   "stream": "https://inference.poolside.ai/v1/chat/completions",
+}
+`;
+
+exports[`GOLDEN buildUrl (default executor providers) > raccoon → url (stream + non-stream) 1`] = `
+{
+  "nonStream": "https://xiaohuanxiong.com/api/web/llm/v2/chat/completions",
+  "stream": "https://xiaohuanxiong.com/api/web/llm/v2/chat/completions",
 }
 `;
 
