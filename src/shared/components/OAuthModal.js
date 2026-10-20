@@ -7,7 +7,7 @@ import { useCopyToClipboard } from "@/shared/hooks/useCopyToClipboard";
 
 // Providers using the dynamic-port local callback proxy.
 // Browser OAuth: popup → auto callback → auto exchange → poll-status.
-const PROXY_OAUTH_PROVIDERS = new Set(["trae", "windsurf", "zed"]);
+const PROXY_OAUTH_PROVIDERS = new Set(["trae", "windsurf", "zed", "lobsterai"]);
 
 // 登录站点选项（issue #69）。Trae 国内站 (trae.cn) 与国际站 (trae.ai) 账号不互通：
 // refresh token 拿到另一端换必回 20101，所以必须由用户显式选站点，不能赌默认值。

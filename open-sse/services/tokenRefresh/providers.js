@@ -4,6 +4,18 @@ import { proxyAwareFetch } from "../../utils/proxyFetch.js";
 import { dedupRefresh } from "./dedup.js";
 import { buildClineHeaders, getClineAccessToken } from "../../shared/clineAuth.js";
 import { buildExternalIdpRefreshParams } from "../../../src/lib/oauth/kiroExternalIdp.js";
+import {
+  LOBSTERAI_REFRESH_URL,
+  LOBSTERAI_REQUEST_TIMEOUT_MS,
+  LOBSTERAI_USER_AGENT,
+} from "../../shared/lobsterai/constants.js";
+import {
+  jwtExpiryMs,
+  keyfromFields,
+  readNumber,
+  resolveClientVersion,
+  unwrapEnvelope,
+} from "../../shared/lobsterai/client.js";
 
 let _xaiServiceSingleton = null;
 export async function refreshXaiToken(refreshToken, log) {
@@ -965,6 +977,99 @@ export async function refreshClineToken(providerId, refreshToken, log) {
       return { accessToken, refreshToken: newRefresh, expiresIn };
     } catch (error) {
       log?.error?.("TOKEN_REFRESH", `${providerId} refresh error: ${error.message}`);
+      return null;
+    }
+  }, log);
+}
+
+// LobsterAI refresh: the upstream rejects a bare `{refresh_token}` OAuth grant.
+// It wants the identity payload captured at login (firstKeyfrom / latestKeyfrom,
+// optional uuid / userId) plus `version`, and **no Authorization header**.
+// `latestKeyfrom` is deliberately never refreshed — keeping the login-time value
+// is the only shape validated in production (Rust credentials.rs module head).
+export async function refreshLobsterAiToken(credentials, log = null, proxyOptions = null) {
+  const refreshToken = credentials?.refreshToken;
+  const psd = credentials?.providerSpecificData || {};
+  if (!refreshToken) return { error: "invalid_grant" };
+  if (!String(psd.firstKeyfrom || "").trim() || !String(psd.latestKeyfrom || "").trim()) {
+    // Missing keyfrom means this row can never refresh (only re-login can fix it).
+    log?.warn?.("TOKEN_REFRESH", "LobsterAI refresh token without keyfrom payload — re-auth required");
+    return { error: "invalid_grant" };
+  }
+
+  const version = await resolveClientVersion();
+  const body = Object.fromEntries(keyfromFields(psd, version));
+  body.refreshToken = refreshToken;
+
+  return dedupRefresh("lobsterai", refreshToken, async () => {
+    try {
+      const response = await proxyAwareFetch(
+        LOBSTERAI_REFRESH_URL,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            "User-Agent": LOBSTERAI_USER_AGENT,
+          },
+          body: JSON.stringify(body),
+          signal: AbortSignal.timeout(LOBSTERAI_REQUEST_TIMEOUT_MS),
+        },
+        proxyOptions,
+      );
+      const text = await response.text().catch(() => "");
+      if (response.status === 401 || response.status === 403) {
+        log?.warn?.("TOKEN_REFRESH", `LobsterAI refresh rejected (HTTP ${response.status}) — re-auth required`);
+        return { error: "invalid_grant" };
+      }
+      if (!response.ok) {
+        log?.warn?.("TOKEN_REFRESH", `LobsterAI refresh failed (HTTP ${response.status})`, {
+          body: text.slice(0, 200),
+        });
+        return null;
+      }
+
+      let payload;
+      try {
+        payload = JSON.parse(text);
+      } catch {
+        log?.warn?.("TOKEN_REFRESH", "LobsterAI refresh response is not JSON");
+        return null;
+      }
+      const unwrapped = unwrapEnvelope(payload, "续期");
+      if (!unwrapped.ok) {
+        if (unwrapped.status === 401 || unwrapped.code === 40100 || unwrapped.code === 40101) {
+          log?.warn?.("TOKEN_REFRESH", `LobsterAI refresh rejected (${unwrapped.code ?? 401}) — re-auth required`);
+          return { error: "invalid_grant" };
+        }
+        log?.warn?.("TOKEN_REFRESH", `LobsterAI refresh error: ${unwrapped.message}`);
+        return null;
+      }
+
+      const data = unwrapped.data;
+      const accessToken = typeof data?.accessToken === "string" ? data.accessToken.trim() : "";
+      if (!accessToken) {
+        log?.warn?.("TOKEN_REFRESH", "LobsterAI refresh returned no accessToken — re-auth required");
+        return { error: "invalid_grant" };
+      }
+
+      let expiresIn = readNumber(data.expiresIn);
+      if (!expiresIn || expiresIn <= 0) {
+        const expMs = jwtExpiryMs(accessToken);
+        expiresIn = expMs > 0 ? Math.max(1, Math.floor((expMs - Date.now()) / 1000)) : undefined;
+      }
+
+      log?.info?.("TOKEN_REFRESH", "Successfully refreshed LobsterAI token", {
+        hasNewRefreshToken: !!data.refreshToken,
+        expiresIn,
+      });
+      return {
+        accessToken,
+        refreshToken: data.refreshToken || refreshToken,
+        expiresIn,
+      };
+    } catch (error) {
+      log?.warn?.("TOKEN_REFRESH", `LobsterAI refresh error: ${error?.message || error}`);
       return null;
     }
   }, log);

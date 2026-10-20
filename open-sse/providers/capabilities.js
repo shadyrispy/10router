@@ -404,6 +404,32 @@ const QODER_CN_NAME_ALIASES = {
  * Provider-specific capability overrides. Keyed by provider alias/id.
  */
 export const PROVIDER_CAPABILITIES = {
+  // LobsterAI 的静态兜底目录：上游 `/api/models/available` 是权威来源，但
+  // registry 不能联网，广告的是参考实现验证过的 19 条。上下文统一 131072
+  // （参考实现的桥接层估计值，不是逐模型实测）；视觉 / 思考位**不猜**——
+  // 上游只有远程目录才逐条声明，静态表里编一个 false 会让将来的模型被静默
+  // 剥图，编 true 又可能把不支持的图发上去。tools 走默认 true（OpenAI 透传）。
+  lobsterai: {
+    "deepseek-v4-flash": { contextWindow: 131072 },
+    "deepseek-v4-pro": { contextWindow: 131072 },
+    "MiniMax-M3": { contextWindow: 131072 },
+    "MiniMax-M2.7": { contextWindow: 131072 },
+    "qwen3.7-max": { contextWindow: 131072 },
+    "qwen3.7-plus": { contextWindow: 131072 },
+    "qwen3.6-plus": { contextWindow: 131072 },
+    "qwen3.5-plus-2026-04-20": { contextWindow: 131072 },
+    "kimi-k2.7-code": { contextWindow: 131072 },
+    "kimi-k2.7-code-highspeed": { contextWindow: 131072 },
+    "kimi-k2.6": { contextWindow: 131072 },
+    "kimi-k2.5": { contextWindow: 131072 },
+    "doubao-seed-2-1-pro-260628": { contextWindow: 131072 },
+    "doubao-seed-2-1-turbo-260628": { contextWindow: 131072 },
+    "doubao-seed-2-0-code-preview-260215": { contextWindow: 131072 },
+    "glm-5.2": { contextWindow: 131072 },
+    "glm-5.1": { contextWindow: 131072 },
+    "glm-5v-turbo": { contextWindow: 131072 },
+    "glm-5": { contextWindow: 131072 },
+  },
   // Kilo Gateway 的 `kilo-auto/*` 是**路由器档位**（上游自己决定落到哪个模型），
   // id 里没有任何模型家族线索，因此全部落 DEFAULT_CAPABILITIES（200K/64K、
   // vision:false）。kilo 官方条目给出了每档的实际承诺（2026-10-20 models.dev

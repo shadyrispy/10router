@@ -19,6 +19,7 @@ import {
   refreshZedToken,
   refreshWindsurfToken,
   refreshMinimaxCodeToken,
+  refreshLobsterAiToken,
   classifyOAuthRefreshError,
 } from "./tokenRefresh/providers.js";
 
@@ -41,6 +42,7 @@ export {
   refreshZedToken,
   refreshWindsurfToken,
   refreshMinimaxCodeToken,
+  refreshLobsterAiToken,
   classifyOAuthRefreshError,
 };
 
@@ -196,6 +198,8 @@ const REFRESH_HANDLERS = {
   "kimi-coding": (c, log) => refreshKimiToken(c.refreshToken, c, log),
   "minimax-code": (c, log) => refreshMinimaxCodeToken("minimax-code", c.refreshToken, log),
   "minimax-code-global": (c, log) => refreshMinimaxCodeToken("minimax-code-global", c.refreshToken, log),
+  // LobsterAI: custom payload (uuid + two keyfroms + version), JSON body, no Authorization.
+  lobsterai: (c, log) => refreshLobsterAiToken(c, log),
   vertex: vertexRefreshHandler,
   "vertex-partner": vertexRefreshHandler
 };
