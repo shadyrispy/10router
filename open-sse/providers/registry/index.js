@@ -158,6 +158,7 @@ import p154 from "./codiv.js";
 import p155 from "./thx.js";
 import p156 from "./lobsterai.js";
 import p157 from "./raccoon.js";
+import p158 from "./atomcode.js";
 
 export default [
   p0,
@@ -319,4 +320,5 @@ export default [
   p155,
   p156,
   p157,
+  p158,
 ];

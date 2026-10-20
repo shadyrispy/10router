@@ -20,6 +20,7 @@ import {
   resolveClientVersion,
   unwrapEnvelope,
 } from "../../shared/lobsterai/client.js";
+import { refreshAtomcodeToken as refreshAtomcodeOAuthToken } from "../../shared/atomcode/oauth.js";
 
 let _xaiServiceSingleton = null;
 export async function refreshXaiToken(refreshToken, log) {
@@ -482,6 +483,35 @@ export async function refreshCopilotToken(githubAccessToken, log) {
 // CodeBuddy (Tencent) refresh — POST /v2/plugin/auth/token/refresh with the
 // refresh token carried in the X-Refresh-Token header (not a form body),
 // matching the official CodeBuddy CLI. Response: { code: 0, data: <token> }.
+// AtomCode (AtomGit) — JSON {refresh_token} to the login broker, no client
+// credentials, and BOTH tokens rotate. A rejected refresh token is permanent
+// (the browser login has to be repeated), so surface invalid_grant instead of
+// a generic null that keeps the dead account in rotation.
+export async function refreshAtomcodeToken(refreshToken, log, proxyOptions = null) {
+  if (!refreshToken) return null;
+  return dedupRefresh("atomcode", refreshToken, async () => {
+    try {
+      const bundle = await refreshAtomcodeOAuthToken(refreshToken, proxyOptions);
+      if (!bundle?.accessToken) return null;
+      return {
+        accessToken: bundle.accessToken,
+        // Rotation: keep the previous token only when the broker omitted it.
+        refreshToken: bundle.refreshToken || refreshToken,
+        expiresIn: bundle.expiresIn || undefined,
+        providerSpecificData: {
+          ...(bundle.userId ? { userId: bundle.userId } : {}),
+          ...(bundle.username ? { username: bundle.username } : {}),
+          ...(bundle.name ? { name: bundle.name } : {}),
+        },
+      };
+    } catch (error) {
+      log?.warn?.("TOKEN_REFRESH", `atomcode refresh failed: ${error?.message || error}`);
+      if (error?.code === "invalid_grant") return { error: "invalid_grant" };
+      return null;
+    }
+  }, log);
+}
+
 export async function refreshCodebuddyToken(refreshToken, log) {
   if (!refreshToken) return null;
   return dedupRefresh("codebuddy-cn", refreshToken, async () => {

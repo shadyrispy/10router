@@ -21,6 +21,7 @@ import {
   refreshMinimaxCodeToken,
   refreshLobsterAiToken,
   refreshRaccoonToken,
+  refreshAtomcodeToken,
   classifyOAuthRefreshError,
 } from "./tokenRefresh/providers.js";
 
@@ -45,6 +46,7 @@ export {
   refreshMinimaxCodeToken,
   refreshLobsterAiToken,
   refreshRaccoonToken,
+  refreshAtomcodeToken,
   classifyOAuthRefreshError,
 };
 
@@ -204,6 +206,7 @@ const REFRESH_HANDLERS = {
   lobsterai: (c, log) => refreshLobsterAiToken(c, log),
   // apikey connection holding a bearer JWT + refresh token (rotates on use).
   raccoon: (c, log) => refreshRaccoonToken(c.refreshToken, log),
+  atomcode: (c, log) => refreshAtomcodeToken(c.refreshToken, log, c.proxyOptions),
   vertex: vertexRefreshHandler,
   "vertex-partner": vertexRefreshHandler
 };
