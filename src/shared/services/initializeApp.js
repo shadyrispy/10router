@@ -171,7 +171,8 @@ async function runHeavyStartup() {
     settings.raccoonCheckin === true ||
     settings.atomcodeCheckin === true ||
     settings.lobsteraiCheckin === true ||
-    settings.loomyCheckin === true
+    settings.loomyCheckin === true ||
+    settings.officeaceCheckin === true
   ) {
     import("@/sse/services/checkin/scheduler.js")
       .then(({ startCheckinScheduler }) => startCheckinScheduler())

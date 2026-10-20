@@ -161,6 +161,7 @@ import p157 from "./raccoon.js";
 import p158 from "./atomcode.js";
 import p159 from "./loomy.js";
 import p160 from "./trae-solo.js";
+import p161 from "./officeace.js";
 
 export default [
   p0,
@@ -325,4 +326,5 @@ export default [
   p158,
   p159,
   p160,
+  p161,
 ];
