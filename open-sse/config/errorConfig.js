@@ -109,6 +109,13 @@ export const ERROR_RULES = [
   // with the SAME model within the same second (323–654ms), while a direct
   // single request with the identical shape returns 200. So the block is on the
   // channel, and walking the account list is what makes it worse.
+  //
+  // 已先做请求侧清洗（open-sse/executors/codebuddy-outbound.js，两个 CodeBuddy
+  // 出口都在出站前执行）：① messages[].role="developer" 归一为 system；
+  // ② 请求体任意字符串里的裸串 "11128" 改写为 "11-128"。这两条是社区实测的
+  // 请求侧复现条件（MOONKEY0510/workbuddy_api，MIT）。能走到本规则说明**清洗
+  // 之后**仍被上游拦截 —— 那才是真正的渠道级风控，channelScope 熔断保留作兜底，
+  // 不是被清洗替代。不要因为加了清洗就删掉这条规则。
   { text: "unapproved channel",       channelScope: true, cooldownMs: CHANNEL_BLOCK_MS.short },
   { text: "illegal api invocation",   channelScope: true, cooldownMs: CHANNEL_BLOCK_MS.short },
   { text: "improperly formed request", cooldownMs: COOLDOWN.long },

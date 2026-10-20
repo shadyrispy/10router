@@ -124,19 +124,23 @@ export default function ExperimentalClient() {
               />
             </div>
 
-            {/* CodeBuddy intl daily active-session probe (campaign credits) */}
+            {/* CodeBuddy intl daily active-session probe — RETIRED: CreditDaddy
+                removed the same mechanism and the scheduler no longer sends the
+                daily probe. The toggle stays (default off, disabled) so the
+                stored setting remains visible/readable; nothing is sent. */}
             <div className="flex items-start sm:items-center justify-between gap-4 pt-4 border-t border-border/50">
               <div className="flex-1 min-w-0">
                 <p className="font-medium text-sm sm:text-base">{translate("CodeBuddy daily active session")}</p>
                 <p className="text-xs sm:text-sm text-text-muted">
-                  {translate("Send one free-tier chat request per account daily so the activity credits are granted")}
+                  {translate("Retired — no daily probe is sent (CreditDaddy removed this mechanism)")}
                 </p>
               </div>
               <Toggle
-                checked={settings.codeBuddyIntlSession === true}
+                checked={false}
+                disabled
                 onChange={() =>
                   patch(
-                    { codeBuddyIntlSession: !(settings.codeBuddyIntlSession === true) },
+                    { codeBuddyIntlSession: false },
                     "Error toggling codebuddy intl daily session:"
                   )
                 }
