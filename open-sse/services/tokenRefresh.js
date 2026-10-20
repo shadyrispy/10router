@@ -13,6 +13,7 @@ import {
   refreshCopilotToken,
   refreshCodebuddyToken,
   refreshCodebuddyIntlToken,
+  refreshQoderToken,
   refreshTraeToken,
   refreshClineToken,
   refreshZedToken,
@@ -34,6 +35,7 @@ export {
   refreshCopilotToken,
   refreshCodebuddyToken,
   refreshCodebuddyIntlToken,
+  refreshQoderToken,
   refreshTraeToken,
   refreshClineToken,
   refreshZedToken,
@@ -178,6 +180,10 @@ const REFRESH_HANDLERS = {
   gcli: (c, log) => refreshXaiToken(c.refreshToken, log),
   "codebuddy-cn": (c, log) => refreshCodebuddyToken(c.refreshToken, log),
   "codebuddy-intl": (c, log) => refreshCodebuddyIntlToken(c.refreshToken, log),
+  // Qoder device tokens refresh on the openapi host (unsigned); PAT job
+  // refresh tokens (`jrt-`) pick the sibling endpoint inside the handler.
+  qoder: (c, log) => refreshQoderToken("qoder", c.refreshToken, c, log),
+  "qoder-cn": (c, log) => refreshQoderToken("qoder-cn", c.refreshToken, c, log),
   trae: (c, log) => refreshTraeToken(c.refreshToken, c, log),
   // Cline/ClinePass: upstream demands camelCase JSON (issue #21), not the
   // generic form-encoded OAuth2 body — dedicated handler, shared endpoints.
