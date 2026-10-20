@@ -1427,5 +1427,25 @@
   "loomy": {
     "baseUrl": "https://loomyad.xunfei.cn/api/v1/chat/completions",
     "format": "openai"
+  },
+  "trae-solo": {
+    "baseUrl": "https://trae-api-cn.mchost.guru",
+    "format": "openai",
+    "headers": {
+      "X-App-Id": "6eefa01c-1036-4c7e-9ca5-d891f63bfcd8",
+      "X-Ide-Version": "0.1.61",
+      "X-Ide-Version-Code": "20260820",
+      "X-Device-Type": "windows",
+      "Request-Traffic-Type": "prod"
+    },
+    "auth": {
+      "combined": true,
+      "header": "Authorization",
+      "scheme": "Cloud-IDE-JWT"
+    },
+    "defaultRegion": "cn",
+    "clientId": "ono9krqynydwx5",
+    "clientSecret": "-",
+    "tokenUrl": "https://api.marscode.com/cloudide/api/v3/trae/oauth/ExchangeToken"
   }
 }
