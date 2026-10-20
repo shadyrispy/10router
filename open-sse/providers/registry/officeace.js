@@ -32,10 +32,10 @@ export default {
   id: "officeace",
   alias: "oac",
   uiAlias: "oac",
-  category: "apikey",
+  category: "oauth",
   authType: "apikey",
-  authModes: ["apikey"],
-  hasOAuth: false,
+  authModes: ["oauth", "apikey"],
+  hasOAuth: true,
   authHint: "手工导入网关 Basic 对：model_app_key:model_app_secret（OAuth 后续）",
   display: {
     name: "OfficeAce",

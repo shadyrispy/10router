@@ -30,9 +30,10 @@ export default {
     textIcon: "RC",
     website: "https://xiaohuanxiong.com",
   },
-  category: "apikey",
+  category: "oauth",
   authType: "apikey",
-  authModes: ["apikey"],
+  authModes: ["oauth", "apikey"],
+  hasOAuth: true,
   transport: {
     baseUrl: RACCOON_CHAT_COMPLETIONS_URL,
     format: "openai",

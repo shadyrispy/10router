@@ -30,9 +30,10 @@ export default {
   alias: "loomy",
   aliases: ["xfyun-loomy", "loomy-xunfei"],
   uiAlias: "loomy",
-  category: "apikey",
+  category: "oauth",
   authType: "apikey",
-  authModes: ["apikey"],
+  authModes: ["oauth", "apikey"],
+  hasOAuth: true,
   display: {
     name: "Loomy 讯飞",
     icon: "auto_awesome",

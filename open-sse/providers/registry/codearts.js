@@ -30,8 +30,8 @@ export default {
   aliases: ["ca"],
   category: "oauth",
   authType: "apikey",
-  authModes: ["apikey"],
-  hasOAuth: false,
+  authModes: ["oauth", "apikey"],
+  hasOAuth: true,
   authHint: "华为云 CodeArts：手动导入临时 AK/SK（OAuth 登录待接入）",
   display: {
     name: "CodeArts",
