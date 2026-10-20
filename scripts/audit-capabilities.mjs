@@ -123,6 +123,8 @@ export const ALLOWLIST = {
   "iflow/iflow-rome-30ba3b": "codename",
   "dots/dots3-note-prev": "codename",
   "morph/morph-dsv4flash": "codename",
+  // Loomy 的 spark-x：参考实现的静态目录没有公开上下文/能力规格，真实目录在 /models。
+  "loomy/spark-x": "no public spec",
   "tokenrouter/miromind/mirothinker-1-7-deepresearch": "codename",
   "tokenrouter/miromind/mirothinker-1-7-deepresearch-mini": "codename",
   // Present in opencode-go's public /models catalog, absent from their endpoint table and

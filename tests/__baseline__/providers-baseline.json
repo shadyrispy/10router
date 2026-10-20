@@ -1423,5 +1423,9 @@
       "url": "https://api.gitcode.com/api/v5/coding-plan/status-v2"
     },
     "tokenUrl": "https://acs.atomgit.com/auth/token"
+  },
+  "loomy": {
+    "baseUrl": "https://loomyad.xunfei.cn/api/v1/chat/completions",
+    "format": "openai"
   }
 }
