@@ -624,6 +624,135 @@ export async function refreshMinimaxCodeToken(provider, refreshToken, log, proxy
   }, log);
 }
 
+// ─── Qoder ───────────────────────────────────────────────────────────────────
+//
+// Qoder device tokens (`dt-...`) refresh on the **openapi** host, unsigned:
+//   POST {openApiBaseUrl}/api/v1/deviceToken/refresh  {"refresh_token": "..."}
+// PAT-derived job refresh tokens (`jrt-...`) use a sibling endpoint:
+//   POST {openApiBaseUrl}/api/v1/jobToken/refresh     {"refresh_token": "..."}
+// The two are NOT interchangeable. The registry's old
+// `center.../algo/api/v3/user/refresh_token` endpoint is appcode-signed and
+// drops an unsigned device-token request with 403 "Request discarded", so it
+// is never used here.
+//
+// Upstream rotates the pair on every successful refresh; the previous refresh
+// token is consumed immediately, hence dedupRefresh + full write-back.
+const QODER_REFRESH_UA = "qoder-local-proxy";
+// Device tokens live ~30 days. Used only when the response carries no
+// absolute expiry — refreshing early is harmless, never refreshing is not.
+const QODER_DEFAULT_TTL_MS = 30 * 24 * 60 * 60 * 1000;
+
+function qoderPickString(payload, keys) {
+  for (const key of keys) {
+    const value = payload?.[key];
+    if (typeof value === "string" && value.trim()) return value.trim();
+  }
+  return "";
+}
+
+/**
+ * Absolute expiry only. `expires_in` is milliseconds on Qoder's device
+ * endpoint (2591999994 ≈ 30 days) but seconds in other references — guessing
+ * writes a multi-decade expiry and disables proactive refresh for good.
+ */
+function qoderExpiryMs(payload, nowMs = Date.now()) {
+  for (const key of ["expires_at", "expiresAt", "expire_time", "expireTime"]) {
+    const raw = payload?.[key];
+    if (typeof raw === "number" && Number.isFinite(raw) && raw > 0) {
+      return raw < 1e11 ? raw * 1000 : raw;
+    }
+    if (typeof raw === "string" && raw.trim()) {
+      const text = raw.trim();
+      if (/^\d+$/.test(text)) {
+        const parsed = Number.parseInt(text, 10);
+        if (Number.isFinite(parsed) && parsed > 0) {
+          return parsed < 1e11 ? parsed * 1000 : parsed;
+        }
+      }
+      const parsed = Date.parse(text);
+      if (Number.isFinite(parsed)) return parsed;
+    }
+  }
+  return nowMs + QODER_DEFAULT_TTL_MS;
+}
+
+export async function refreshQoderToken(provider, refreshToken, credentials, log, proxyOptions = null) {
+  if (!refreshToken) return null;
+
+  const oauth = PROVIDER_OAUTH[provider] || {};
+  const url = refreshToken.startsWith("jrt-") ? oauth.jobRefreshUrl : oauth.refreshUrl;
+  if (!url) {
+    log?.warn?.("TOKEN_REFRESH", `No Qoder refresh URL configured for ${provider}`);
+    return null;
+  }
+
+  return dedupRefresh(provider, refreshToken, async () => {
+    try {
+      const response = await proxyAwareFetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          "User-Agent": QODER_REFRESH_UA,
+        },
+        body: JSON.stringify({ refresh_token: refreshToken }),
+      }, proxyOptions);
+
+      if (!response.ok) {
+        const errorText = await response.text().catch(() => "");
+        const failure = classifyOAuthRefreshError(errorText, response.status);
+        const code = typeof failure.code === "string" && failure.code ? failure.code : null;
+        // 401/403 is terminal across every reference implementation: expired,
+        // rotated away, or issued for the other region. Everything else
+        // (429/5xx, or a 400 from protocol drift) is transient and must not
+        // mark the account — a wrong-endpoint 400 is our bug, not a dead token.
+        if (response.status === 401 || response.status === 403 || failure.permanent) {
+          log?.error?.("TOKEN_REFRESH", `Qoder refresh token rejected (${provider})`, {
+            status: response.status,
+            code,
+          });
+          return { error: "unrecoverable_refresh_error", code };
+        }
+        log?.warn?.("TOKEN_REFRESH", `Qoder refresh failed transiently (${provider})`, {
+          status: response.status,
+        });
+        return null;
+      }
+
+      const data = await response.json().catch(() => null);
+      const accessToken = qoderPickString(data, ["device_token", "deviceToken", "token", "access_token"]);
+      if (!accessToken) {
+        // 200 without a token is an upstream shape change, not proof the
+        // refresh token is dead — leave the account in rotation.
+        log?.warn?.("TOKEN_REFRESH", `Qoder refresh returned no token (${provider})`);
+        return null;
+      }
+
+      // Never write account A's token pair onto account B's connection.
+      const returnedUser = qoderPickString(data, ["user_id", "uid", "userId"]);
+      const expectedUser = credentials?.providerSpecificData?.userId || "";
+      if (returnedUser && expectedUser && returnedUser !== expectedUser) {
+        log?.error?.("TOKEN_REFRESH", `Qoder refresh returned a different account (${provider})`);
+        return null;
+      }
+
+      const newRefresh = qoderPickString(data, ["refresh_token", "refreshToken"]) || refreshToken;
+      const expiresIn = Math.max(1, Math.floor((qoderExpiryMs(data) - Date.now()) / 1000));
+
+      log?.info?.("TOKEN_REFRESH", `Successfully refreshed Qoder token (${provider})`, {
+        hasNewAccessToken: true,
+        hasNewRefreshToken: newRefresh !== refreshToken,
+        expiresIn,
+      });
+
+      return { accessToken, refreshToken: newRefresh, expiresIn };
+    } catch (error) {
+      log?.error?.("TOKEN_REFRESH", `Error refreshing Qoder token (${provider}): ${error.message}`);
+      return null;
+    }
+  }, log);
+}
+
 // Trae refresh — POST ExchangeToken with JSON body {ClientID, RefreshToken, ClientSecret, UserID}.
 // Response: {Result: {AccessToken, RefreshToken, TokenType, ExpiresAt}}.
 //
