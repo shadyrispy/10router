@@ -10,6 +10,7 @@ import xai from "./xai.js";
 import grokCli from "./grok-cli.js";
 import geminiCli from "./gemini-cli.js";
 import antigravity from "./antigravity.js";
+import atomcode from "./atomcode.js";
 import iflow from "./iflow.js";
 import qoder from "./qoder.js";
 import qoderCn from "./qoder-cn.js";
@@ -39,6 +40,7 @@ const PROVIDERS = {
   "grok-cli": grokCli,
   "gemini-cli": geminiCli,
   antigravity,
+  atomcode,
   iflow,
   qoder,
   "qoder-cn": qoderCn,

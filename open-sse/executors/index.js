@@ -1,4 +1,5 @@
 import { AntigravityExecutor } from "./antigravity.js";
+import { AtomcodeExecutor } from "./atomcode.js";
 import { AzureExecutor } from "./azure.js";
 import { GeminiCLIExecutor } from "./gemini-cli.js";
 import { GithubExecutor } from "./github.js";
@@ -32,6 +33,7 @@ import { DevinCliExecutor } from "./devin-cli.js";
 
 const executors = {
   antigravity: new AntigravityExecutor(),
+  atomcode: new AtomcodeExecutor(),
   azure: new AzureExecutor(),
   "gemini-cli": new GeminiCLIExecutor(),
   github: new GithubExecutor(),
@@ -87,6 +89,7 @@ export function hasSpecializedExecutor(provider) {
 
 export { BaseExecutor } from "./base.js";
 export { AntigravityExecutor } from "./antigravity.js";
+export { AtomcodeExecutor } from "./atomcode.js";
 export { AzureExecutor } from "./azure.js";
 export { GeminiCLIExecutor } from "./gemini-cli.js";
 export { GithubExecutor } from "./github.js";

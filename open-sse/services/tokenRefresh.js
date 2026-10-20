@@ -18,6 +18,7 @@ import {
   refreshZedToken,
   refreshWindsurfToken,
   refreshMinimaxCodeToken,
+  refreshAtomcodeToken,
   classifyOAuthRefreshError,
 } from "./tokenRefresh/providers.js";
 
@@ -39,6 +40,7 @@ export {
   refreshZedToken,
   refreshWindsurfToken,
   refreshMinimaxCodeToken,
+  refreshAtomcodeToken,
   classifyOAuthRefreshError,
 };
 
@@ -190,6 +192,7 @@ const REFRESH_HANDLERS = {
   "kimi-coding": (c, log) => refreshKimiToken(c.refreshToken, c, log),
   "minimax-code": (c, log) => refreshMinimaxCodeToken("minimax-code", c.refreshToken, log),
   "minimax-code-global": (c, log) => refreshMinimaxCodeToken("minimax-code-global", c.refreshToken, log),
+  atomcode: (c, log) => refreshAtomcodeToken(c.refreshToken, log, c.proxyOptions),
   vertex: vertexRefreshHandler,
   "vertex-partner": vertexRefreshHandler
 };
