@@ -73,6 +73,15 @@ const OAUTH_TEST_CONFIG = {
   // qoder / qoder-cn are handled by testQoderConnection (short-circuited at the
   // top of testOAuthConnection): the one-by-one picker can select a model, and
   // verifying it needs the account's live catalog, not a plain userinfo probe.
+  // Loomy: the business `/models` endpoint takes the SMS session in a bare
+  // `token` header (chat uses Bearer). 200 = healthy; 401/403 = re-login.
+  loomy: {
+    url: "https://loomyad.xunfei.cn/api/v1/models",
+    method: "GET",
+    authHeader: "token",
+    authPrefix: "",
+    extraHeaders: { Accept: "application/json" },
+  },
   kimi: { checkExpiry: true, refreshable: true },
   "kimi-coding": { checkExpiry: true, refreshable: true },
   cursor: { tokenExists: true },

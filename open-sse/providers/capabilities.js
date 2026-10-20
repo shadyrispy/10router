@@ -433,6 +433,20 @@ export const PROVIDER_CAPABILITIES = {
     "glm-5v-turbo": { contextWindow: 131072 },
     "glm-5": { contextWindow: 131072 },
   },
+  // Loomy（讯飞）— 2026-10-20 按上游 `/api/v1/models` 的 capabilities 校准。
+  // 上游全部支持 reasoning_effort（none/low/medium/high/xhigh），故 thinkingFormat 用 openai。
+  loomy: {
+    "deepseek-v4-flash-0731": { reasoning: true, thinkingFormat: "openai", contextWindow: 1048576 },
+    "DeepSeek-V4.1-Flash":    { vision: true, reasoning: true, thinkingFormat: "openai", contextWindow: 1048576, maxOutput: 384000 },
+    "MiniMax-M3":             { vision: true, reasoning: true, thinkingFormat: "openai", contextWindow: 1048576, maxOutput: 512000 },
+    "Kimi-k2.6":              { vision: true, reasoning: true, thinkingFormat: "openai", contextWindow: 262144, maxOutput: 65536 },
+    "qwen-3.8-max":           { vision: false, reasoning: true, thinkingFormat: "openai", contextWindow: 1000000, maxOutput: 65536 },
+    "GLM-5.3-Flash":          { vision: true, reasoning: true, thinkingFormat: "openai", contextWindow: 1048576, maxOutput: 131072 },
+    "qwen3.8-flash":          { vision: true, reasoning: true, thinkingFormat: "openai", contextWindow: 1000000, maxOutput: 131072 },
+    "spark-x2.6-preview":     { vision: false, reasoning: true, thinkingFormat: "openai", contextWindow: 1048576, maxOutput: 131072 },
+    "spark-x":                { vision: false, reasoning: true, thinkingFormat: "openai", contextWindow: 1048576, maxOutput: 65536 },
+    "mimo-v2.5":              { vision: true, reasoning: true, thinkingFormat: "openai", contextWindow: 1048576, maxOutput: 131072 },
+  },
   // Kilo Gateway 的 `kilo-auto/*` 是**路由器档位**（上游自己决定落到哪个模型），
   // id 里没有任何模型家族线索，因此全部落 DEFAULT_CAPABILITIES（200K/64K、
   // vision:false）。kilo 官方条目给出了每档的实际承诺（2026-10-20 models.dev

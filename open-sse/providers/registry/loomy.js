@@ -50,15 +50,19 @@ export default {
     // 上游模型名就是 wire id，没有路由前缀；表内没有的 id 由 strictModels 拒绝。
   },
   models: [
+    // 2026-10-20 按上游 `GET /api/v1/models` 实测校准（12 条里取 9 条 chat；
+    // 另外 3 条是图像模型，chat 执行器不服务，故不登记）。`deepseek-v4-flash-0731`
+    // 已不在上游目录，但实测仍可调用，作为 legacy 保留。
     { id: "deepseek-v4-flash-0731", name: "DeepSeek V4 Flash 0731", contextWindow: 1048576, reasoning: true, vision: false },
-    { id: "DeepSeek-V4.1-Flash", name: "DeepSeek V4.1 Flash", reasoning: true, vision: true },
-    { id: "MiniMax-M3", name: "MiniMax M3", contextWindow: 1048576, reasoning: true, vision: false },
-    { id: "Kimi-k2.6", name: "Kimi k2.6", contextWindow: 262144, reasoning: true, vision: false },
-    { id: "qwen-3.8-max", name: "Qwen 3.8 Max", contextWindow: 1000000, reasoning: true, vision: false },
-    { id: "GLM-5.3-Flash", name: "GLM 5.3 Flash", contextWindow: 1048576, reasoning: true, vision: true },
-    { id: "qwen3.8-flash", name: "Qwen 3.8 Flash", contextWindow: 1000000, reasoning: true, vision: false },
-    { id: "spark-x", name: "Spark X2.5", contextWindow: 1048576, reasoning: true, vision: false },
-    { id: "mimo-v2.5", name: "MiMo V2.5", contextWindow: 1048576, reasoning: true, vision: false },
+    { id: "DeepSeek-V4.1-Flash", name: "DeepSeek V4.1 Flash", contextWindow: 1048576, maxOutput: 384000, reasoning: true, vision: true },
+    { id: "MiniMax-M3", name: "MiniMax M3", contextWindow: 1048576, maxOutput: 512000, reasoning: true, vision: true },
+    { id: "Kimi-k2.6", name: "Kimi k2.6", contextWindow: 262144, maxOutput: 65536, reasoning: true, vision: true },
+    { id: "qwen-3.8-max", name: "Qwen 3.8 Max", contextWindow: 1000000, maxOutput: 65536, reasoning: true, vision: false },
+    { id: "GLM-5.3-Flash", name: "GLM 5.3 Flash", contextWindow: 1048576, maxOutput: 131072, reasoning: true, vision: true },
+    { id: "qwen3.8-flash", name: "Qwen 3.8 Flash", contextWindow: 1000000, maxOutput: 131072, reasoning: true, vision: true },
+    { id: "spark-x2.6-preview", name: "Spark X2.6 Preview", contextWindow: 1048576, maxOutput: 131072, reasoning: true, vision: false },
+    { id: "spark-x", name: "Spark X2.5", contextWindow: 1048576, maxOutput: 65536, reasoning: true, vision: false },
+    { id: "mimo-v2.5", name: "MiMo V2.5", contextWindow: 1048576, maxOutput: 131072, reasoning: true, vision: true },
   ],
   strictModels: true,
   features: {
