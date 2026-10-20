@@ -247,6 +247,10 @@ export const MODEL_CAPABILITIES = {
   // vision:false）——两者都会把图片在 modality 层静默剥掉。
   "deepseek-flash": { vision: true, reasoning: true, thinkingFormat: "deepseek", contextWindow: 1000000, maxOutput: 384000 },
   "deepseek-v4.1-flash": { vision: true, reasoning: true, thinkingFormat: "deepseek", contextWindow: 1000000, maxOutput: 384000 },
+  // Display-cased spelling published by Loomy's bundled catalog (lookup here is
+  // case-sensitive; without this row it falls to the *deepseek-v4* pattern and
+  // loses vision).
+  "DeepSeek-V4.1-Flash": { vision: true, reasoning: true, thinkingFormat: "deepseek", contextWindow: 1000000, maxOutput: 384000 },
   // 横杠形态别名：部分转售商以 `deepseek-v4-1-flash`（点号换成横杠）暴露同一模型；
   // 裸配会落 `*deepseek-v4*` 通配（vision:false），图片在 modality 层被静默剥掉。
   "deepseek-v4-1-flash": { vision: true, reasoning: true, thinkingFormat: "deepseek", contextWindow: 1000000, maxOutput: 384000 },
@@ -783,7 +787,7 @@ export const PROVIDER_CAPABILITIES = {
     "deepseek-v4-flash-0731":     { reasoning: true, contextWindow: 1048576, maxOutput: 65536 },
     "glm-5.3-flash":              { reasoning: true, contextWindow: 1048576, maxOutput: 65536 },
     "deepseek-v4-pro-0813":       { reasoning: true, contextWindow: 1000000, maxOutput: 65536 },
-    "deepseek-v4.1-flash":        { reasoning: true, contextWindow: 1000000, maxOutput: 65536 },
+    "deepseek-v4.1-flash":        { vision: true, reasoning: true, contextWindow: 1000000, maxOutput: 65536 },
   },
 };
 
@@ -815,6 +819,7 @@ PROVIDER_CAPABILITIES.kilogateway = PROVIDER_CAPABILITIES["kilo-gateway"];
 PROVIDER_CAPABILITIES.lobster = PROVIDER_CAPABILITIES.lobsterai;
 PROVIDER_CAPABILITIES["lobster-ai"] = PROVIDER_CAPABILITIES.lobsterai;
 PROVIDER_CAPABILITIES["youdao-lobster"] = PROVIDER_CAPABILITIES.lobsterai;
+PROVIDER_CAPABILITIES.ca = PROVIDER_CAPABILITIES.codearts;
 
 /**
  * Pattern fallback — glob (* = wildcard), matched case-insensitively and

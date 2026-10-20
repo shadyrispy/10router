@@ -27,6 +27,7 @@ export default {
   id: "codearts",
   alias: "codearts",
   uiAlias: "ca",
+  aliases: ["ca"],
   category: "oauth",
   authType: "apikey",
   authModes: ["apikey"],
