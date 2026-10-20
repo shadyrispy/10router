@@ -57,6 +57,9 @@ const PROVIDERS = {
   "codebuddy-intl": codebuddyIntl,
   kimchi,
   trae,
+  // Same login flow / credential shape as `trae`; the provider is separate so
+  // the SOLO model port can hold its own connection row.
+  "trae-solo": trae,
   windsurf,
   zed,
   glm,

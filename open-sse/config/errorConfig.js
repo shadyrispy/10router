@@ -103,6 +103,9 @@ export const ERROR_RULES = [
   // 不冷却」的兜底分支，所以必须显式置顶并按长冷却换下一个账号（上游 9f41ee75）。
   { provider: "codex", text: "model is not supported when using codex with a chatgpt account", cooldownMs: MAX_RATE_LIMIT_COOLDOWN_MS },
   { text: "no credentials",           cooldownMs: COOLDOWN.long },
+  // trae-solo 9074 是**设备级**限流（设备号代际），不是渠道指纹：只冷却当前
+  // 连接 5s，绝不做全池熔断——全池冷却会把"换设备号能解"的问题拖成全渠道故障。
+  { provider: "trae-solo", text: "9074", cooldownMs: COOLDOWN.short },
   { text: "request not allowed",      cooldownMs: COOLDOWN.short },
   // CodeBuddy 11128 "Illegal API invocation from an unapproved channel" —
   // upstream security policy. Verified on a 4-account pool: all four answer 11128
