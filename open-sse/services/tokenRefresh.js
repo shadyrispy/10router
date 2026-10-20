@@ -20,6 +20,7 @@ import {
   refreshWindsurfToken,
   refreshMinimaxCodeToken,
   refreshLobsterAiToken,
+  refreshRaccoonToken,
   classifyOAuthRefreshError,
 } from "./tokenRefresh/providers.js";
 
@@ -43,6 +44,7 @@ export {
   refreshWindsurfToken,
   refreshMinimaxCodeToken,
   refreshLobsterAiToken,
+  refreshRaccoonToken,
   classifyOAuthRefreshError,
 };
 
@@ -200,6 +202,8 @@ const REFRESH_HANDLERS = {
   "minimax-code-global": (c, log) => refreshMinimaxCodeToken("minimax-code-global", c.refreshToken, log),
   // LobsterAI: custom payload (uuid + two keyfroms + version), JSON body, no Authorization.
   lobsterai: (c, log) => refreshLobsterAiToken(c, log),
+  // apikey connection holding a bearer JWT + refresh token (rotates on use).
+  raccoon: (c, log) => refreshRaccoonToken(c.refreshToken, log),
   vertex: vertexRefreshHandler,
   "vertex-partner": vertexRefreshHandler
 };

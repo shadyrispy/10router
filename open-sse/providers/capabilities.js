@@ -758,6 +758,18 @@ export const PROVIDER_CAPABILITIES = {
     "laguna-s-2.1":  { reasoning: true, thinkingFormat: "openai", contextWindow: 1000000, maxOutput: 32000 },
     "laguna-xs-2.1": { reasoning: true, thinkingFormat: "openai", contextWindow: 200000, maxOutput: 32000 },
   },
+  // Raccoon 小浣熊 — static fallback catalog from our Rust provider
+  // (raccoon/models.rs). Only raccoon-8c4485 advertises image input; the two
+  // sn-* / raccoon-chat entries are thinking-capable. Without these rows the
+  // ids have no family marker and would fall to the 200K/64K floor, silently
+  // stripping images and clamping max_tokens.
+  "raccoon": {
+    "raccoon-8c4485":             { vision: true, reasoning: false, contextWindow: 1000000, maxOutput: 100000 },
+    "raccoon-19b265":             { vision: false, reasoning: false, contextWindow: 1000000, maxOutput: 100000 },
+    "raccoon-405a1c":             { vision: false, reasoning: false, contextWindow: 1000000, maxOutput: 100000 },
+    "raccoon-chat-ml-5-5":        { vision: false, reasoning: true, thinkingFormat: "openai", contextWindow: 180000, maxOutput: 80000 },
+    "sn-sensenova-6-8-flash-lite": { vision: false, reasoning: true, thinkingFormat: "openai", contextWindow: 256000, maxOutput: 63999 },
+  },
 };
 
 // 传输/UI 别名与 provider id 共享同一张表（上游 89ffac5a）：combo 座位、gpt-6

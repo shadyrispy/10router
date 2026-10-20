@@ -1,5 +1,9 @@
 import { PROVIDERS, PROVIDER_OAUTH } from "../../config/providers.js";
 import { OAUTH_ENDPOINTS, GITHUB_COPILOT, buildKimiHeaders } from "../../config/appConstants.js";
+import {
+  RACCOON_ACCESS_TOKEN_TTL_SEC,
+  RACCOON_REFRESH_URL,
+} from "../../config/raccoon.js";
 import { proxyAwareFetch } from "../../utils/proxyFetch.js";
 import { dedupRefresh } from "./dedup.js";
 import { buildClineHeaders, getClineAccessToken } from "../../shared/clineAuth.js";
@@ -760,6 +764,97 @@ export async function refreshQoderToken(provider, refreshToken, credentials, log
       return { accessToken, refreshToken: newRefresh, expiresIn };
     } catch (error) {
       log?.error?.("TOKEN_REFRESH", `Error refreshing Qoder token (${provider}): ${error.message}`);
+      return null;
+    }
+  }, log);
+}
+
+// Raccoon 小浣熊 — POST {authBase}/refresh {"refresh_token": "..."} ->
+// data.access_token + data.refresh_token. The refresh token ROTATES on every
+// successful call (Rust raccoon/credentials.rs), so the new value must be
+// persisted; dedupRefresh keys on the old token and hands concurrent callers
+// the same result instead of replaying a consumed token.
+//
+// The auth host is a different site from the LLM gateway and the source client
+// calls it directly (no account proxy), so this deliberately does not take
+// proxyOptions.
+function raccoonJwtExpiryMs(token) {
+  try {
+    const payloadPart = String(token).split(".")[1];
+    if (!payloadPart) return null;
+    const payload = JSON.parse(Buffer.from(payloadPart, "base64url").toString("utf8"));
+    return Number.isFinite(payload?.exp) ? payload.exp * 1000 : null;
+  } catch {
+    return null;
+  }
+}
+
+export async function refreshRaccoonToken(refreshToken, log) {
+  if (!refreshToken) return null;
+  return dedupRefresh("raccoon", refreshToken, async () => {
+    try {
+      const response = await proxyAwareFetch(RACCOON_REFRESH_URL, {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ refresh_token: refreshToken }),
+      }, null);
+
+      const text = await response.text();
+      let payload = null;
+      try {
+        payload = text ? JSON.parse(text) : null;
+      } catch {
+        payload = null;
+      }
+
+      if (!response.ok) {
+        const failure = classifyOAuthRefreshError(text, response.status);
+        log?.warn?.("TOKEN_REFRESH", "Failed to refresh Raccoon token", {
+          status: response.status,
+          code: failure.code || null,
+          permanent: failure.permanent,
+        });
+        // 401/403 on a refresh call means the refresh token itself is dead —
+        // retrying cannot recover it, so surface needs-reauth instead of a miss.
+        if (response.status === 401 || response.status === 403 || failure.permanent) {
+          return { error: failure.code || "invalid_grant" };
+        }
+        return null;
+      }
+
+      const data = payload?.data && typeof payload.data === "object" ? payload.data : payload;
+      const accessToken = String(data?.access_token || "").trim().replace(/^Bearer\s+/i, "");
+      if (!accessToken) {
+        // A 2xx without a token is a protocol failure, not a transient blip:
+        // repeating it will never produce a usable credential.
+        log?.warn?.("TOKEN_REFRESH", "Raccoon refresh returned no access_token", {
+          code: payload?.code ?? null,
+        });
+        return { error: "invalid_grant" };
+      }
+      const nextRefreshToken = String(data?.refresh_token || "").trim().replace(/^Bearer\s+/i, "") || refreshToken;
+      const expiresAt = raccoonJwtExpiryMs(accessToken) ?? Date.now() + RACCOON_ACCESS_TOKEN_TTL_SEC * 1000;
+
+      log?.info?.("TOKEN_REFRESH", "Successfully refreshed Raccoon token", {
+        hasNewAccessToken: true,
+        rotatedRefreshToken: nextRefreshToken !== refreshToken,
+      });
+
+      return {
+        accessToken,
+        // An apikey-category connection keeps the JWT in `apiKey`, and the
+        // executor's auth resolution prefers apiKey over accessToken. Without
+        // mirroring it here the refreshed token would be persisted but the very
+        // next request would keep sending the expired apiKey.
+        apiKey: accessToken,
+        refreshToken: nextRefreshToken,
+        expiresAt,
+      };
+    } catch (error) {
+      log?.error?.("TOKEN_REFRESH", `Network error refreshing Raccoon token: ${error.message}`);
       return null;
     }
   }, log);

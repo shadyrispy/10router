@@ -157,6 +157,7 @@ import p153 from "./modelscope.js";
 import p154 from "./codiv.js";
 import p155 from "./thx.js";
 import p156 from "./lobsterai.js";
+import p157 from "./raccoon.js";
 
 export default [
   p0,
@@ -317,4 +318,5 @@ export default [
   p154,
   p155,
   p156,
+  p157,
 ];
