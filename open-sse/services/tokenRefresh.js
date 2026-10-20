@@ -15,6 +15,7 @@ import {
   refreshCodebuddyIntlToken,
   refreshQoderToken,
   refreshTraeToken,
+  refreshTraeSoloToken,
   refreshClineToken,
   refreshZedToken,
   refreshWindsurfToken,
@@ -40,6 +41,7 @@ export {
   refreshCodebuddyIntlToken,
   refreshQoderToken,
   refreshTraeToken,
+  refreshTraeSoloToken,
   refreshClineToken,
   refreshZedToken,
   refreshWindsurfToken,
@@ -191,6 +193,9 @@ const REFRESH_HANDLERS = {
   qoder: (c, log) => refreshQoderToken("qoder", c.refreshToken, c, log),
   "qoder-cn": (c, log) => refreshQoderToken("qoder-cn", c.refreshToken, c, log),
   trae: (c, log) => refreshTraeToken(c.refreshToken, c, log),
+  // Same Cloud-IDE-JWT family as `trae`, independent connection: the SOLO
+  // model port refreshes on ExchangeToken with a DeviceProof (legacy fallback).
+  "trae-solo": (c, log) => refreshTraeSoloToken(c.refreshToken, c, log),
   // Cline/ClinePass: upstream demands camelCase JSON (issue #21), not the
   // generic form-encoded OAuth2 body — dedicated handler, shared endpoints.
   cline: (c, log) => refreshClineToken("cline", c.refreshToken, log),

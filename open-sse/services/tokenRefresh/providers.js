@@ -912,6 +912,10 @@ function traeSiteFromCredentials(credentials) {
   return "intl";
 }
 
+// Trae SOLO refresh lives in its own module (DeviceProof + legacy fallback);
+// re-export keeps the single import surface for tokenRefresh.js.
+export { refreshTraeSoloToken } from "./trae-solo.js";
+
 export async function refreshTraeToken(refreshToken, credentials, log) {
   if (!refreshToken) return null;
   const oauth = PROVIDER_OAUTH.trae || {};

@@ -28,6 +28,7 @@ import { ClineExecutor } from "./cline.js";
 import { LobsterAiExecutor } from "./lobsterai.js";
 import { LoomyExecutor } from "./loomy.js";
 import TraeExecutor from "./trae.js";
+import TraeSoloExecutor from "./trae-solo.js";
 import ZedExecutor from "./zed.js";
 import WindsurfExecutor from "./windsurf.js";
 import { DefaultExecutor } from "./default.js";
@@ -74,6 +75,7 @@ const executors = {
   cline: new ClineExecutor(),
   cl: new ClineExecutor(),
   trae: new TraeExecutor(),
+  "trae-solo": new TraeSoloExecutor(),
   zed: new ZedExecutor(),
   windsurf: new WindsurfExecutor(),
   "devin-cli": new DevinCliExecutor(),
@@ -121,6 +123,7 @@ export { CodeBuddyExecutor } from "./codebuddy-cn.js";
 export { CodeBuddyIntlExecutor } from "./codebuddy-intl.js";
 export { ClineExecutor } from "./cline.js";
 export { default as TraeExecutor } from "./trae.js";
+export { default as TraeSoloExecutor } from "./trae-solo.js";
 export { default as ZedExecutor } from "./zed.js";
 export { default as WindsurfExecutor } from "./windsurf.js";
 export { DevinCliExecutor } from "./devin-cli.js";
