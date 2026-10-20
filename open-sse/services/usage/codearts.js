@@ -19,7 +19,7 @@ import {
   codeArtsFetch,
   isBenefitAbsent,
   resolveCodeArtsCredential,
-} from "../shared/codearts/client.js";
+} from "../../shared/codearts/client.js";
 
 function asObject(value) {
   return value && typeof value === "object" && !Array.isArray(value) ? value : null;

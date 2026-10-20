@@ -1459,5 +1459,19 @@
       ]
     },
     "forceStream": true
+  },
+  "codearts": {
+    "baseUrl": "https://snap-access.cn-north-4.myhuaweicloud.com/api/v2/chat/completions",
+    "format": "openai",
+    "headers": {
+      "X-Language": "en-us",
+      "plugin-name": "snap_vscode",
+      "plugin-version": "1.0.0"
+    },
+    "timeoutMs": 300000,
+    "stallTimeoutMs": 180000,
+    "usage": {
+      "url": "https://snap-access.cn-north-4.myhuaweicloud.com/snap-manager/v1/statistics/plugin"
+    }
   }
 }
