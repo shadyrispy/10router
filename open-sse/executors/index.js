@@ -26,6 +26,7 @@ import { CodeBuddyExecutor } from "./codebuddy-cn.js";
 import { CodeBuddyIntlExecutor } from "./codebuddy-intl.js";
 import { ClineExecutor } from "./cline.js";
 import { LobsterAiExecutor } from "./lobsterai.js";
+import { OfficeAceExecutor } from "./officeace.js";
 import TraeExecutor from "./trae.js";
 import ZedExecutor from "./zed.js";
 import WindsurfExecutor from "./windsurf.js";
@@ -69,6 +70,7 @@ const executors = {
   "codebuddy-cn": new CodeBuddyExecutor(),
   "codebuddy-intl": new CodeBuddyIntlExecutor(),
   lobsterai: new LobsterAiExecutor(),
+  officeace: new OfficeAceExecutor(),
   cline: new ClineExecutor(),
   cl: new ClineExecutor(),
   trae: new TraeExecutor(),
@@ -114,6 +116,7 @@ export { CommandCodeExecutor } from "./commandcode.js";
 export { XiaomiTokenplanExecutor } from "./xiaomi-tokenplan.js";
 export { XiaomiMimoExecutor } from "./xiaomi-mimo.js";
 export { MimoFreeExecutor } from "./mimo-free.js";
+export { OfficeAceExecutor } from "./officeace.js";
 export { CodeBuddyExecutor } from "./codebuddy-cn.js";
 export { CodeBuddyIntlExecutor } from "./codebuddy-intl.js";
 export { ClineExecutor } from "./cline.js";

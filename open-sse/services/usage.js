@@ -32,6 +32,7 @@ import { getMiniMaxCodeUsage } from "./usage/minimax-code.js";
 import { getLobsterAiUsage } from "./usage/lobsterai.js";
 import { getRaccoonUsage } from "./usage/raccoon.js";
 import { getAtomcodeUsage } from "./usage/atomcode.js";
+import { getOfficeAceUsage } from "./usage/officeace.js";
 import { extractEarliestPackageExpiry } from "./usage/expiryExtractor.js";
 
 /**
@@ -101,6 +102,9 @@ const USAGE_HANDLERS = {
   // imports may carry it on accessToken instead. Accept both.
   raccoon: (c) => getRaccoonUsage(c.accessToken || c.apiKey, c.proxyOptions),
   atomcode: (c) => getAtomcodeUsage(c.accessToken, c.apiKey, c.proxyOptions),
+  // 控制面（/v1/subscription）要 V11 签名：apiKey 是网关 Basic 对，AK/SK/STS
+  // 在 providerSpecificData 里；缺了就返回一条可执行的说明。
+  officeace: (c) => getOfficeAceUsage(c.apiKey, c.providerSpecificData, c.proxyOptions),
   // Alibaba Token Plan（credit 订阅 key）：没有任何公开额度接口，handler 只返回
   // 一条指向百炼控制台的说明，避免漏成 "Usage API not implemented"（见 misc.js）。
   "alitp-intl": (c) => getAlibabaTokenPlanUsage("alitp-intl"),

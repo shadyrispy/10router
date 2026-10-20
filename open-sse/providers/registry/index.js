@@ -159,6 +159,7 @@ import p155 from "./thx.js";
 import p156 from "./lobsterai.js";
 import p157 from "./raccoon.js";
 import p158 from "./atomcode.js";
+import p159 from "./officeace.js";
 
 export default [
   p0,
@@ -321,4 +322,5 @@ export default [
   p156,
   p157,
   p158,
+  p159,
 ];
