@@ -81,9 +81,11 @@ const OFFICIAL_ID = REGISTRY.flatMap((entry) =>
 );
 
 describe("DeepSeek V4.1-Flash official id (deepseek-flash)", () => {
-  it("is offered by the first-party provider and by opencode-go", () => {
+  it("is offered by the first-party provider, opencode-go and AtomCode", () => {
+    // AtomCode's two-source catalog (coding-plan + builtin) also publishes the
+    // bare `deepseek-flash` id; it resolves from the same canonical row.
     const providers = OFFICIAL_ID.map((m) => m.provider).sort();
-    expect(providers).toEqual(["deepseek", "opencode-go"]);
+    expect(providers).toEqual(["atomcode", "deepseek", "opencode-go"]);
   });
 
   it("resolves from the canonical row, not the V3 *deepseek* wildcard", () => {

@@ -424,7 +424,6 @@ export const PROVIDER_CAPABILITIES = {
     "kimi-k2.5": { contextWindow: 131072 },
     "doubao-seed-2-1-pro-260628": { contextWindow: 131072 },
     "doubao-seed-2-1-turbo-260628": { contextWindow: 131072 },
-    "doubao-seed-2-0-code-preview-260215": { contextWindow: 131072 },
     "glm-5.2": { contextWindow: 131072 },
     "glm-5.1": { contextWindow: 131072 },
     "glm-5v-turbo": { contextWindow: 131072 },
@@ -795,6 +794,11 @@ PROVIDER_CAPABILITIES["atria-asi"] = PROVIDER_CAPABILITIES.atria;
 // 同一模型换个拼写就回落到 DEFAULT 200k（vision/reasoning 被剥、窗口砍到 1/5）。
 PROVIDER_CAPABILITIES.qd = PROVIDER_CAPABILITIES.qoder;
 PROVIDER_CAPABILITIES.qdc = PROVIDER_CAPABILITIES["qoder-cn"];
+PROVIDER_CAPABILITIES.kgw = PROVIDER_CAPABILITIES["kilo-gateway"];
+PROVIDER_CAPABILITIES.kilogateway = PROVIDER_CAPABILITIES["kilo-gateway"];
+PROVIDER_CAPABILITIES.lobster = PROVIDER_CAPABILITIES.lobsterai;
+PROVIDER_CAPABILITIES["lobster-ai"] = PROVIDER_CAPABILITIES.lobsterai;
+PROVIDER_CAPABILITIES["youdao-lobster"] = PROVIDER_CAPABILITIES.lobsterai;
 
 /**
  * Pattern fallback — glob (* = wildcard), matched case-insensitively and
