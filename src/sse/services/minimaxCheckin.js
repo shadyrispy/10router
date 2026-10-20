@@ -15,8 +15,6 @@ import * as log from "../utils/logger.js";
 import { DEFAULT_CHECKIN_TIME, checkinTimeReached, nextCheckinDelay, normalizeCheckinTime } from "./checkin/schedule.js";
 import { signedAccountRequest } from "../../../open-sse/services/usage/minimax-code.js";
 
-const TICK_MS = 2 * 60 * 60 * 1000;
-const TICK_JITTER_MS = 10 * 60 * 1000;
 const MINIMAX_PROVIDERS = new Set(["minimax-code", "minimax-code-global"]);
 
 let started = false;
@@ -32,11 +30,6 @@ function isNonServerRuntime() {
   }
   if (process.env.NEXT_RUNTIME === "edge") return true;
   return false;
-}
-
-export function msUntilNextTick(nowMs = Date.now(), rand = Math.random) {
-  const jitter = Math.floor(rand() * TICK_JITTER_MS);
-  return Math.max(TICK_MS + jitter, 1000);
 }
 
 async function loadSettingsSafe() {

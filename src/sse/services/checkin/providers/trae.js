@@ -38,12 +38,12 @@ function localDayKey(now = Date.now()) {
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
 }
 
-function markBlocked(key) {
-  BLOCKED_DAY.set(key, localDayKey());
+function markBlocked(key, day) {
+  BLOCKED_DAY.set(key, day || localDayKey());
 }
 
-function isBlocked(key) {
-  return BLOCKED_DAY.get(key) === localDayKey();
+function isBlocked(key, day) {
+  return BLOCKED_DAY.get(key) === (day || localDayKey());
 }
 
 /** Fresh 16-digit device id (uniform; crypto.randomInt avoids modulo bias). */
@@ -173,7 +173,7 @@ function failed(message) {
   return { status: "failed", message };
 }
 
-export async function runTraeCheckin(conn, { dryRun = false, force = false } = {}) {
+export async function runTraeCheckin(conn, { dryRun = false, force = false, today = "" } = {}) {
   const variant = variantOf(conn);
   if (variant === "intl" || variant === "solo-intl") {
     return { status: "no-activity", message: "国际版 Trae 没有签到通道（上游无此活动）" };
@@ -191,7 +191,8 @@ export async function runTraeCheckin(conn, { dryRun = false, force = false } = {
 
   const key = String(conn.id || psd.userId || psd.email || "trae");
   if (RUNNING.has(key)) return { status: "limited", message: "该账号签到正在进行中" };
-  if (!force && isBlocked(key)) {
+  const day = today || localDayKey();
+  if (!force && isBlocked(key, day)) {
     return { status: "limited", message: "今日已触发上游限流或登录失效，自动重试已停止；可手动重试或明日再试" };
   }
   RUNNING.add(key);
@@ -201,7 +202,7 @@ export async function runTraeCheckin(conn, { dryRun = false, force = false } = {
 
     const beforeRes = await post(STATUS_PATH, headers);
     if (isAuthFailure(beforeRes.httpStatus, beforeRes.payload)) {
-      markBlocked(key);
+      markBlocked(key, day);
       return { status: "needs-reauth", message: "Trae 登录态已失效，请重新登录" };
     }
     if (!beforeRes.payload) {
@@ -210,7 +211,7 @@ export async function runTraeCheckin(conn, { dryRun = false, force = false } = {
     const before = statusOf(beforeRes.payload);
     if (before.code !== CODE_OK) {
       if (before.code === CODE_REJECTED) {
-        markBlocked(key);
+        markBlocked(key, day);
         return { status: "limited", code: before.code, message: before.message || "当前签到人数过多，今日不再自动重试" };
       }
       return failed(before.message || `签到状态返回 code=${before.code}`);
@@ -238,7 +239,7 @@ export async function runTraeCheckin(conn, { dryRun = false, force = false } = {
 
     const claimRes = await post(CLAIM_PATH, headers);
     if (isAuthFailure(claimRes.httpStatus, claimRes.payload)) {
-      markBlocked(key);
+      markBlocked(key, day);
       return { status: "needs-reauth", message: "Trae 登录态已失效，请重新登录" };
     }
     if (!claimRes.payload) {
@@ -248,7 +249,7 @@ export async function runTraeCheckin(conn, { dryRun = false, force = false } = {
     if (claim.code !== CODE_OK) {
       const decision = decideTraeOutcome(before, claim, null);
       if (claim.code === CODE_REJECTED) {
-        markBlocked(key);
+        markBlocked(key, day);
         return { status: "limited", code: claim.code, message: decision.message };
       }
       return { status: "failed", code: claim.code, message: decision.message };

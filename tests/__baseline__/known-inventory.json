@@ -1244,8 +1244,6 @@
   "tests/unit/codebuddy-checkin.test.js :: mapDailyCheckinStatus maps HTTP 400 with an idempotent '已签到' message to already": "passed",
   "tests/unit/codebuddy-checkin.test.js :: mapDailyCheckinStatus maps HTTP 400 with any other code/message to failed": "passed",
   "tests/unit/codebuddy-checkin.test.js :: mapDailyCheckinStatus maps HTTP 400 with code 10001 to already": "passed",
-  "tests/unit/codebuddy-checkin.test.js :: msUntilNextTick is injectable and deterministic via rand=0.5": "passed",
-  "tests/unit/codebuddy-checkin.test.js :: msUntilNextTick returns a positive delay bounded to one ~2h cadence plus jitter": "passed",
   "tests/unit/codebuddy-checkin.test.js :: runCodebuddyCheckinTick checks in only eligible connections and returns per-account statuses": "passed",
   "tests/unit/codebuddy-checkin.test.js :: runCodebuddyCheckinTick fail-open: a load error yields an empty result array, never a throw": "passed",
   "tests/unit/codebuddy-checkin.test.js :: runCodebuddyCheckinTick fail-open: a throwing connection is reported as failed, not propagated": "passed",

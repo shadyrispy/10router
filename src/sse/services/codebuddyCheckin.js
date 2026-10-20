@@ -43,8 +43,6 @@ const INTL_PROBE_MAX_TOKENS = 16;
 
 // All-day cadence: retry every ~2h (plus jitter) until each account is done
 // for the day; the per-day memo keeps already-done accounts fully idle.
-const TICK_MS = 2 * 60 * 60 * 1000;
-const TICK_JITTER_MS = 10 * 60 * 1000;
 
 let started = false;
 let timerHandle = null;
@@ -198,18 +196,6 @@ export function mapDailyCheckinStatus({ httpStatus, code, msg } = {}) {
     if (code === 10001 || code === "10001" || isIdempotentAlready(msg)) return "already";
   }
   return "failed";
-}
-
-/**
- * Delay (ms) until the next all-day tick: fixed ~2h cadence plus jitter so
- * many instances don't tick in lockstep. `rand` is injectable for tests.
- * @param {number} [nowMs]
- * @param {() => number} [rand] 0..1 uniform
- * @returns {number}
- */
-export function msUntilNextTick(nowMs = Date.now(), rand = Math.random) {
-  const jitter = Math.floor(rand() * TICK_JITTER_MS);
-  return Math.max(TICK_MS + jitter, 1000);
 }
 
 function isNonServerRuntime() {
@@ -897,7 +883,6 @@ export const __internals = {
   INTL_CHAT_URL,
   INTL_PROBE_MODEL,
   dayKey,
-  msUntilNextTick,
   getDoneMap,
   persistDoneMap,
   getCompensationDoneMap,

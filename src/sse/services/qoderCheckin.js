@@ -14,8 +14,6 @@ import {
   QODER_CN_OPENAPI_BASE,
 } from "../../../open-sse/shared/qoder/constants.js";
 
-const TICK_MS = 2 * 60 * 60 * 1000;
-const TICK_JITTER_MS = 10 * 60 * 1000;
 
 let started = false;
 let timerHandle = null;
@@ -30,11 +28,6 @@ function isNonServerRuntime() {
   }
   if (process.env.NEXT_RUNTIME === "edge") return true;
   return false;
-}
-
-export function msUntilNextTick(nowMs = Date.now(), rand = Math.random) {
-  const jitter = Math.floor(rand() * TICK_JITTER_MS);
-  return Math.max(TICK_MS + jitter, 1000);
 }
 
 async function loadSettingsSafe() {
