@@ -45,7 +45,7 @@ const CODINGPLAN = ATOMCODE_DEFAULT_CODINGPLAN_BASE;
 export default {
   id: "atomcode",
   alias: "atc",
-  uiAlias: "ac",
+  uiAlias: "atc",
   category: "oauth",
   authModes: ["oauth", "apikey"],
   hasOAuth: true,
