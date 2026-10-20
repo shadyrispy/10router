@@ -98,6 +98,11 @@ export const CHANNEL_BLOCK_ESCALATE_WINDOW_MS = 5 * 60 * 1000;
  */
 export const ERROR_RULES = [
   // --- Text-based rules (checked first, order = priority) ---
+  // CodeArts 并发超限：上游第 4 路回 **HTTP 400 `TM.00001041`**。账号是健康的，
+  // 只是这一瞬间满了（每号 3 路，`[DONE]` 后未释放的僵尸槽很常见）。必须走**短冷却**
+  // 而不是 429 的指数退避：把 400 归成 429（或让 400 落到「请求自身错误、不换号」）
+  // 都会让一次调度碰撞变成几分钟的整号停摆。只对本 provider 生效。
+  { provider: "codearts", text: "00001041", cooldownMs: COOLDOWN.short },
   // codex：[1m] 长上下文请求打到没勾选该变体的账号时，后端 400 回复这句——
   // 是账号级能力问题（换号可解），但它以 400 出现会撞进下方「请求自身 4xx
   // 不冷却」的兜底分支，所以必须显式置顶并按长冷却换下一个账号（上游 9f41ee75）。

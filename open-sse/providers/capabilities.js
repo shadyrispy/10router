@@ -769,6 +769,22 @@ export const PROVIDER_CAPABILITIES = {
     "raccoon-chat-ml-5-5":        { vision: false, reasoning: true, thinkingFormat: "openai", contextWindow: 180000, maxOutput: 80000 },
     "sn-sensenova-6-8-flash-lite": { vision: false, reasoning: true, thinkingFormat: "openai", contextWindow: 256000, maxOutput: 63999 },
   },
+  // CodeArts (Huawei) — three-source catalog from our Rust provider
+  // (codearts/models.rs: agent + builtin + benefit). Declared maxOutput values
+  // above 65536 are lies: the platform rejects 65537+ wholesale, so every row
+  // is capped at 65536. Multimodal models exist only in the builtin source.
+  "codearts": {
+    "GLM-5.2":                    { reasoning: true, contextWindow: 202752, maxOutput: 65536 },
+    "glm-5.2-sft-harmony":        { reasoning: false, contextWindow: 202752, maxOutput: 65536 },
+    "openpangu-2.0-pro":          { reasoning: true, contextWindow: 524288, maxOutput: 65536 },
+    "openpangu-2.0-flash":        { reasoning: true, contextWindow: 524288, maxOutput: 65536 },
+    "Qwen3-VL-235B":              { vision: true, reasoning: false, contextWindow: 200000, maxOutput: 65536 },
+    "kimi-k2.6-vl":               { vision: true, reasoning: false, contextWindow: 200000, maxOutput: 65536 },
+    "deepseek-v4-flash-0731":     { reasoning: true, contextWindow: 1048576, maxOutput: 65536 },
+    "glm-5.3-flash":              { reasoning: true, contextWindow: 1048576, maxOutput: 65536 },
+    "deepseek-v4-pro-0813":       { reasoning: true, contextWindow: 1000000, maxOutput: 65536 },
+    "deepseek-v4.1-flash":        { reasoning: true, contextWindow: 1000000, maxOutput: 65536 },
+  },
 };
 
 // 传输/UI 别名与 provider id 共享同一张表（上游 89ffac5a）：combo 座位、gpt-6

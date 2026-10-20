@@ -162,6 +162,7 @@ import p158 from "./atomcode.js";
 import p159 from "./loomy.js";
 import p160 from "./trae-solo.js";
 import p161 from "./officeace.js";
+import p162 from "./codearts.js";
 
 export default [
   p0,
@@ -327,4 +328,5 @@ export default [
   p159,
   p160,
   p161,
+  p162,
 ];

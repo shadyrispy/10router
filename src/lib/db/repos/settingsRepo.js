@@ -122,6 +122,7 @@ const DEFAULT_SETTINGS = {
   // One-shot reward claim (POST /v1/subscription/bonus/claim), verified by the
   // before/after subscription delta. Controls-plane credentials required.
   officeaceCheckin: false,
+  codeartsCheckin: false,
   // Provider-wide channel blocks: { [provider]: { until, lastAt, strikes } }.
   // Set when an upstream answers with a channel-scope error (e.g. CodeBuddy
   // 11128 "unapproved channel"): the failure belongs to the channel, so every
