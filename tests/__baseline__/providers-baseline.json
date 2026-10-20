@@ -1447,5 +1447,17 @@
     "clientId": "ono9krqynydwx5",
     "clientSecret": "-",
     "tokenUrl": "https://api.marscode.com/cloudide/api/v3/trae/oauth/ExchangeToken"
+  },
+  "officeace": {
+    "baseUrl": "https://modelgw-0004.officeace.cn-southwest-2.huaweicloud-agentarts.com/v2/chat/completions",
+    "format": "openai",
+    "auth": {
+      "header": "Authorization",
+      "scheme": "raw",
+      "source": [
+        "apiKey"
+      ]
+    },
+    "forceStream": true
   }
 }
