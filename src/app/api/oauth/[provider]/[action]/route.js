@@ -23,6 +23,11 @@ import {
   registerTraeSession,
   getTraeSessionStatus,
   clearTraeSession,
+  startLobsterAiProxy,
+  stopLobsterAiProxy,
+  registerLobsterAiSession,
+  getLobsterAiSessionStatus,
+  clearLobsterAiSession,
   startWindsurfProxy,
   stopWindsurfProxy,
   registerWindsurfSession,
@@ -150,6 +155,10 @@ export async function GET(request, { params }) {
         const result = await startTraeProxy();
         return NextResponse.json(result);
       }
+      if (provider === "lobsterai") {
+        const result = await startLobsterAiProxy();
+        return NextResponse.json(result);
+      }
       if (provider === "windsurf") {
         const result = await startWindsurfProxy();
         return NextResponse.json(result);
@@ -189,6 +198,7 @@ export async function GET(request, { params }) {
       }
       let session;
       if (provider === "trae") session = getTraeSessionStatus(state);
+      else if (provider === "lobsterai") session = getLobsterAiSessionStatus(state);
       else if (provider === "windsurf") session = getWindsurfSessionStatus(state);
       else if (provider === "zed") session = getZedSessionStatus(state);
       else if (provider === "xai") session = getXaiSessionStatus(state);
@@ -209,11 +219,12 @@ export async function GET(request, { params }) {
         }
         return NextResponse.json({ status: xm.status });
       }
-      else return NextResponse.json({ error: "Poll only supported for codex/xai/trae/windsurf/zed" }, { status: 400 });
+      else return NextResponse.json({ error: "Poll only supported for codex/xai/trae/windsurf/zed/lobsterai" }, { status: 400 });
       if (!session) return NextResponse.json({ status: "unknown" });
       if (session.status === "done" || session.status === "error") {
         const payload = { ...session };
         if (provider === "trae") clearTraeSession(state);
+        else if (provider === "lobsterai") clearLobsterAiSession(state);
         else if (provider === "windsurf") clearWindsurfSession(state);
         else if (provider === "zed") clearZedSession(state);
         else if (provider === "xai") clearXaiSession(state);
@@ -225,12 +236,13 @@ export async function GET(request, { params }) {
 
     if (action === "stop-proxy") {
       if (provider === "trae") stopTraeProxy();
+      else if (provider === "lobsterai") stopLobsterAiProxy();
       else if (provider === "windsurf") stopWindsurfProxy();
       else if (provider === "zed") stopZedProxy();
       else if (provider === "xai") stopXaiProxy();
       else if (provider === "codex") stopCodexProxy();
       else if (isXiaomiMimo(provider)) stopXiaomiMimoProxy();
-      else return NextResponse.json({ error: "Proxy only supported for codex/xai/trae/windsurf/zed" }, { status: 400 });
+      else return NextResponse.json({ error: "Proxy only supported for codex/xai/trae/windsurf/zed/lobsterai" }, { status: 400 });
       return NextResponse.json({ success: true });
     }
 
@@ -351,9 +363,10 @@ export async function POST(request, { params }) {
       if (!state) return NextResponse.json({ error: "Missing state" }, { status: 400 });
       let ok = false;
       if (provider === "trae") ok = registerTraeSession({ state });
+      else if (provider === "lobsterai") ok = registerLobsterAiSession({ state });
       else if (provider === "windsurf") ok = registerWindsurfSession({ state });
       else if (provider === "zed") ok = registerZedSession({ state, codeVerifier: body?.codeVerifier });
-      else return NextResponse.json({ error: "register-session only supported for trae/windsurf/zed" }, { status: 400 });
+      else return NextResponse.json({ error: "register-session only supported for trae/windsurf/zed/lobsterai" }, { status: 400 });
       return NextResponse.json({ success: ok });
     }
 

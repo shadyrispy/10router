@@ -2,6 +2,7 @@ import http from "http";
 import crypto from "node:crypto";
 import { URL } from "url";
 import { CODEX_CONFIG, TRAE_CONFIG, WINDSURF_CONFIG, XIAOMI_MIMO_CONFIG, ZED_HOSTED_CONFIG } from "../constants/oauth.js";
+import { LOBSTERAI_CONFIG } from "../providers/lobsterai.js";
 
 // Loopback origin guard for local callback proxies.
 // Legit OAuth redirects are top-level navigations (no `Origin` header); a cross-site
@@ -1065,6 +1066,136 @@ export function stopXiaomiMimoProxy() {
   // does not match this sign-in" the moment the 5-minute listener timed out — i.e.
   // exactly when a user gives up on the callback and reaches for the paste box.
   // registerXiaomiMimoSession() is what bounds the map, by pendingTtlMs.
+}
+
+// ───────────────────────────────────────────────────────────────────────────
+// LobsterAI dynamic-port proxy. The login portal validates that redirect_uri is
+// `http://127.0.0.1:<port>/auth/callback`, so the gateway owns a loopback
+// listener on an ephemeral port (127.0.0.1:0) and auto-exchanges the code.
+// Singleton session, same lifecycle as the Trae proxy above.
+// ───────────────────────────────────────────────────────────────────────────
+
+const LOBSTERAI_LOGIN_TIMEOUT_MS = 10 * 60 * 1000;
+
+let lobsterAiProxyServer = null;
+let lobsterAiProxyTimeout = null;
+let lobsterAiProxyPort = null;
+let lobsterAiSession = null;
+
+export function registerLobsterAiSession({ state }) {
+  if (!state) return false;
+  lobsterAiSession = { state, status: "pending", createdAt: Date.now() };
+  return true;
+}
+
+export function getLobsterAiSessionStatus(state) {
+  if (!lobsterAiSession) return null;
+  if (state && lobsterAiSession.state !== state) return null;
+  return lobsterAiSession;
+}
+
+export function clearLobsterAiSession(state) {
+  if (!state || (lobsterAiSession && lobsterAiSession.state === state)) lobsterAiSession = null;
+}
+
+export function startLobsterAiProxy() {
+  return new Promise((resolve) => {
+    if (lobsterAiProxyServer) {
+      resolve({
+        success: true,
+        port: lobsterAiProxyPort,
+        callbackUrl: `http://127.0.0.1:${lobsterAiProxyPort}${LOBSTERAI_CONFIG.callbackPath}`,
+      });
+      return;
+    }
+
+    const server = http.createServer(async (req, res) => {
+      const url = new URL(req.url, "http://localhost");
+      if (url.pathname !== LOBSTERAI_CONFIG.callbackPath && url.pathname !== "/auth/callback") {
+        res.writeHead(404);
+        res.end("Not found");
+        return;
+      }
+      const session = lobsterAiSession;
+      if (!session) {
+        res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
+        res.end(renderCodexResultPage(false, "No active LobsterAI login session"));
+        return;
+      }
+      // Legit redirects are top-level navigations (no Origin). A cross-origin
+      // fetch to loopback always carries one — reject it (login CSRF guard).
+      if (!isLoopbackOrigin(req.headers.origin)) {
+        res.writeHead(403, { "Content-Type": "text/html; charset=utf-8" });
+        res.end(renderCodexResultPage(false, "Cross-origin callback rejected"));
+        return;
+      }
+      const cbState = url.searchParams.get("state");
+      const code = url.searchParams.get("code");
+      if (!cbState || !session.state || cbState !== session.state || !code) {
+        session.status = "error";
+        session.error = "LobsterAI callback state/code mismatch";
+        res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
+        res.end(renderCodexResultPage(false, session.error));
+        stopLobsterAiProxy();
+        return;
+      }
+
+      const redirectUri = `http://127.0.0.1:${lobsterAiProxyPort}${LOBSTERAI_CONFIG.callbackPath}`;
+      try {
+        const { exchangeTokens } = await import("../providers.js");
+        const { createProviderConnection } = await import("@/models");
+        const tokenData = await exchangeTokens("lobsterai", code, redirectUri, null, session.state);
+        const connection = await createProviderConnection({
+          provider: "lobsterai",
+          authType: "oauth",
+          ...tokenData,
+          expiresAt: tokenData.expiresIn
+            ? new Date(Date.now() + tokenData.expiresIn * 1000).toISOString()
+            : null,
+          testStatus: "active",
+        });
+        session.status = "done";
+        session.connectionId = connection.id;
+        session.email = connection.email;
+        res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
+        res.end(renderCodexResultPage(true, "You can close this window."));
+      } catch (err) {
+        session.status = "error";
+        session.error = err?.message || String(err);
+        res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
+        res.end(renderCodexResultPage(false, session.error));
+      } finally {
+        stopLobsterAiProxy();
+      }
+    });
+
+    server.on("error", (err) => {
+      resolve({ success: false, reason: err.message });
+    });
+
+    server.listen(0, "127.0.0.1", () => {
+      lobsterAiProxyServer = server;
+      lobsterAiProxyPort = server.address().port;
+      lobsterAiProxyTimeout = setTimeout(() => stopLobsterAiProxy(), LOBSTERAI_LOGIN_TIMEOUT_MS);
+      resolve({
+        success: true,
+        port: lobsterAiProxyPort,
+        callbackUrl: `http://127.0.0.1:${lobsterAiProxyPort}${LOBSTERAI_CONFIG.callbackPath}`,
+      });
+    });
+  });
+}
+
+export function stopLobsterAiProxy() {
+  if (lobsterAiProxyTimeout) {
+    clearTimeout(lobsterAiProxyTimeout);
+    lobsterAiProxyTimeout = null;
+  }
+  if (lobsterAiProxyServer) {
+    lobsterAiProxyServer.close();
+    lobsterAiProxyServer = null;
+  }
+  lobsterAiProxyPort = null;
 }
 
 
