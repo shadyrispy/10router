@@ -21,6 +21,7 @@
 // rejects the whole run or kills the server.
 
 import * as log from "../utils/logger.js";
+import { DEFAULT_CHECKIN_TIME, checkinTimeReached, nextCheckinDelay, normalizeCheckinTime } from "./checkin/schedule.js";
 import { isNeedsReauthCooling } from "open-sse/services/accountFallback.js";
 
 const DAILY_CHECKIN_URL = "https://www.codebuddy.cn/v2/billing/meter/daily-checkin";
@@ -47,6 +48,7 @@ const TICK_JITTER_MS = 10 * 60 * 1000;
 
 let started = false;
 let timerHandle = null;
+let scheduledTime = DEFAULT_CHECKIN_TIME;
 
 // connId -> local "YYYY-MM-DD" the account was last confirmed done. Persisted
 // in settings as `codeBuddyDailyDone` (lazy-loaded into this cache) so a
@@ -794,6 +796,11 @@ export async function runCodebuddyCompensationTick(deps = {}) {
 async function safeTick(how) {
   try {
     const settings = await loadSettingsSafe();
+    scheduledTime = normalizeCheckinTime(settings.checkinTime);
+    if (!checkinTimeReached(scheduledTime)) {
+      log.debug("CB_CN_CHECKIN", `Scheduled ${how}: before check-in time ${scheduledTime}, skipping`);
+      return;
+    }
     const done = await getDoneMap();
     if (settings.codeBuddyCheckin === true) {
       await runCodebuddyCheckinTick({ skipIfCheckedToday: true, memo: done });
@@ -825,7 +832,7 @@ async function safeTick(how) {
 
 function scheduleNext() {
   if (!started) return;
-  const delayMs = msUntilNextTick();
+  const delayMs = nextCheckinDelay(Date.now(), scheduledTime);
   clearTimer();
   timerHandle = setTimeout(() => {
     safeTick("tick").finally(() => scheduleNext());
@@ -859,12 +866,13 @@ export function startCodebuddyCheckin(opts = {}) {
   started = true;
 
   // Boot pass (only acts when a setting is on & accounts not yet done today).
-  if (opts.skipBoot !== true) {
-    safeTick("boot");
-  }
-  scheduleNext();
-
-  log.info("CB_CN_CHECKIN", "Scheduler started (all-day cadence)");
+  // Chain scheduleNext after it so `checkinTime` is loaded first.
+  const boot = opts.skipBoot === true ? Promise.resolve() : safeTick("boot");
+  boot.finally(() => {
+    if (!started) return;
+    scheduleNext();
+    log.info("CB_CN_CHECKIN", `Scheduler started (daily ${scheduledTime})`);
+  });
   return true;
 }
 

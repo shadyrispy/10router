@@ -1203,3 +1203,69 @@ export async function refreshLobsterAiToken(credentials, log = null, proxyOption
     }
   }, log);
 }
+
+// ─── CodeArts / OfficeAce OAuth refresh ─────────────────────────────────────
+//
+// Both login modules live under src/lib/oauth/providers/ and return the same
+// credential shape the login route writes (providerSpecificData + rotated
+// refreshToken). Loaded dynamically: these modules pull crypto/DPoP helpers and
+// are only needed when a credential is actually near expiry.
+
+export async function refreshCodeArtsToken(credentials, log) {
+  const refreshToken = String(credentials?.refreshToken || "").trim();
+  if (!refreshToken) return null;
+  const psd = credentials?.providerSpecificData || {};
+  return dedupRefresh("codearts", refreshToken, async () => {
+    try {
+      const mod = await import("../../../src/lib/oauth/providers/codearts.js");
+      const tokens = await mod.refresh({
+        refreshToken,
+        pkceVerifier: psd.pkceVerifier || psd.codeVerifier,
+        dpopPrivateKeyPem: psd.dpopPrivateKeyPem,
+        clientId: psd.clientId,
+      });
+      return {
+        accessToken: tokens.accessToken,
+        refreshToken: tokens.refreshToken,
+        expiresIn: tokens.expiresIn,
+        providerSpecificData: tokens.providerSpecificData,
+      };
+    } catch (error) {
+      const message = error?.message || String(error);
+      const status = Number(error?.status || error?.statusCode || 0);
+      const reauth = status === 401 || status === 403 || /invalid_grant|重新登录|缺少 PKCE/i.test(message);
+      log?.warn?.("TOKEN_REFRESH", `codearts refresh failed${reauth ? " (re-auth required)" : ""}: ${message}`);
+      return reauth ? { error: "invalid_grant", message } : null;
+    }
+  }, log);
+}
+
+export async function refreshOfficeAceToken(credentials, log) {
+  const refreshToken = String(credentials?.refreshToken || "").trim();
+  if (!refreshToken) return null;
+  const psd = credentials?.providerSpecificData || {};
+  return dedupRefresh("officeace", refreshToken, async () => {
+    try {
+      const mod = await import("../../../src/lib/oauth/providers/officeace.js");
+      const tokens = await mod.refresh({
+        refreshToken,
+        dpopPrivateKeyPem: psd.dpopPrivateKeyPem,
+      });
+      return {
+        // The Basic gateway pair does not expire; echoing it makes the generic
+        // persist path treat this as a real refresh (OfficeAce only rotates the
+        // temporary AK/SK inside providerSpecificData).
+        accessToken: credentials.accessToken,
+        refreshToken: tokens.refreshToken,
+        expiresIn: tokens.expiresIn,
+        providerSpecificData: tokens.providerSpecificData,
+      };
+    } catch (error) {
+      const message = error?.message || String(error);
+      const status = Number(error?.status || error?.statusCode || 0);
+      const reauth = status === 400 || status === 401 || status === 403 || /invalid_grant|重新登录|缺少 DPoP/i.test(message);
+      log?.warn?.("TOKEN_REFRESH", `officeace refresh failed${reauth ? " (re-auth required)" : ""}: ${message}`);
+      return reauth ? { error: "invalid_grant", message } : null;
+    }
+  }, log);
+}

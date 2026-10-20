@@ -11,6 +11,12 @@
 //   - sequential on purpose: these are account actions, not user traffic.
 import * as log from "../../utils/logger.js";
 import { getCheckinAdapters, CHECKIN_SETTING_KEYS } from "./registry.js";
+import {
+  DEFAULT_CHECKIN_TIME,
+  checkinTimeReached,
+  nextCheckinDelay,
+  normalizeCheckinTime,
+} from "./schedule.js";
 
 const TICK_MS = 2 * 60 * 60 * 1000;
 const TICK_JITTER_MS = 10 * 60 * 1000;
@@ -18,6 +24,10 @@ const RUN_TIMEOUT_MS = 90 * 1000;
 
 let timerHandle = null;
 let sweeping = false;
+// Last value read from settings. `scheduleNext()` is synchronous; the guarded
+// tick refreshes this before scheduling so a settings change is visible on the
+// next timer without a restart.
+let scheduledTime = DEFAULT_CHECKIN_TIME;
 
 function isNonServerRuntime() {
   if (typeof window !== "undefined") return true;
@@ -60,12 +70,19 @@ function scheduleNext() {
   if (timerHandle) clearTimeout(timerHandle);
   timerHandle = setTimeout(() => {
     fire().catch(() => {});
-  }, msUntilNextTick());
+  }, nextCheckinDelay(Date.now(), scheduledTime));
   timerHandle.unref?.();
 }
 
 async function fire() {
   try {
+    const { getSettings } = await import("../../../lib/localDb.js");
+    const settings = (await getSettings()) || {};
+    scheduledTime = normalizeCheckinTime(settings.checkinTime);
+    if (!checkinTimeReached(scheduledTime)) {
+      log.debug("CHECKIN", `before daily check-in time ${scheduledTime}; skipping`);
+      return;
+    }
     await runCheckinSweep({ reason: "scheduled" });
   } finally {
     scheduleNext();
@@ -74,7 +91,9 @@ async function fire() {
 
 export function startCheckinScheduler() {
   if (isNonServerRuntime() || timerHandle) return;
-  scheduleNext();
+  // Boot pass = catch-up for a process that was down at the configured time.
+  // The per-account ledger prevents a duplicate claim.
+  fire().catch(() => {});
 }
 
 export function stopCheckinScheduler() {
@@ -91,8 +110,20 @@ export async function refreshCheckinScheduler() {
   try {
     const { getSettings } = await import("../../../lib/localDb.js");
     const settings = (await getSettings()) || {};
-    if (CHECKIN_SETTING_KEYS.some((k) => settings[k] === true)) startCheckinScheduler();
-    else stopCheckinScheduler();
+    scheduledTime = normalizeCheckinTime(settings.checkinTime);
+    if (CHECKIN_SETTING_KEYS.some((k) => settings[k] === true)) {
+      if (timerHandle) {
+        // Time may have moved earlier/later. Re-evaluate now (ledger makes
+        // this idempotent) and schedule against the new value.
+        clearTimeout(timerHandle);
+        timerHandle = null;
+        fire().catch(() => {});
+      } else {
+        startCheckinScheduler();
+      }
+    } else {
+      stopCheckinScheduler();
+    }
   } catch (err) {
     log.warn("CHECKIN", `refresh scheduler failed: ${err?.message || err}`);
   }
@@ -153,7 +184,7 @@ export async function runCheckinSweep({
 
         let outcome;
         try {
-          outcome = await withTimeout(adapter.run(conn, { settings, dryRun, today }), RUN_TIMEOUT_MS);
+          outcome = await withTimeout(adapter.run(conn, { settings, dryRun, today, force }), RUN_TIMEOUT_MS);
         } catch (err) {
           outcome = { status: "failed", message: err?.message || String(err) };
         }

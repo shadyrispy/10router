@@ -87,6 +87,9 @@ const DEFAULT_SETTINGS = {
   pxpipeAutoInstall: true,
   pxpipeMinChars: 25000,
   pxpipeTimeoutMs: 15000,
+  // Global daily check-in time (local HH:mm). All enabled schedulers wait for
+  // this minute; failures retry ~every 2h until the day ends.
+  checkinTime: "09:00",
   // Experimental: auto daily check-in for CodeBuddy CN accounts.
   codeBuddyCheckin: false,
   // Experimental: intl daily active-session probe (campaign credits).
@@ -123,6 +126,8 @@ const DEFAULT_SETTINGS = {
   // before/after subscription delta. Controls-plane credentials required.
   officeaceCheckin: false,
   codeartsCheckin: false,
+  // Daily checkin_credits claim for CN Trae / Trae SOLO accounts.
+  traeCheckin: false,
   // Provider-wide channel blocks: { [provider]: { until, lastAt, strikes } }.
   // Set when an upstream answers with a channel-scope error (e.g. CodeBuddy
   // 11128 "unapproved channel"): the failure belongs to the channel, so every

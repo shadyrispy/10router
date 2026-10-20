@@ -22,8 +22,9 @@ import lobsterai from "./providers/lobsterai.js";
 import loomy from "./providers/loomy.js";
 import officeace from "./providers/officeace.js";
 import codearts from "./providers/codearts.js";
+import trae from "./providers/trae.js";
 
-const ADAPTERS = [raccoon, atomcode, lobsterai, loomy, officeace, codearts];
+const ADAPTERS = [raccoon, atomcode, lobsterai, loomy, officeace, codearts, trae];
 
 export function getCheckinAdapters() {
   return ADAPTERS;

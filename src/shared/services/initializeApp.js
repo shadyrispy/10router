@@ -173,7 +173,8 @@ async function runHeavyStartup() {
     settings.lobsteraiCheckin === true ||
     settings.loomyCheckin === true ||
     settings.officeaceCheckin === true ||
-    settings.codeartsCheckin === true
+    settings.codeartsCheckin === true ||
+    settings.traeCheckin === true
   ) {
     import("@/sse/services/checkin/scheduler.js")
       .then(({ startCheckinScheduler }) => startCheckinScheduler())

@@ -676,3 +676,98 @@ export async function finishLogin(
     email,
   };
 }
+
+/**
+ * Refresh the 2h temporary AK/SK/STS with the rotating refresh token.
+ *
+ * The STS refresh grant is DPoP-bound to the SAME P-256 key used at login;
+ * no PKCE verifier is sent on this grant (unlike the authorization_code call).
+ * The gateway Basic pair in `accessToken` never expires and is intentionally
+ * not returned — the caller merges `providerSpecificData` over the old row.
+ *
+ * @param {{refreshToken?: string, dpopPrivateKeyPem?: string}} input
+ * @returns {Promise<{refreshToken: string, expiresAt: number, expiresIn: number, providerSpecificData: object}>}
+ */
+export async function refresh(
+  { refreshToken, dpopPrivateKeyPem } = {},
+  { fetchImpl = fetch, proxyOptions } = {}
+) {
+  const token = trim(refreshToken);
+  if (!token) {
+    throw new OfficeAceLoginError("OfficeAce 账号没有 refresh token，只能重新登录授权", {
+      stage: "token",
+      status: 400,
+    });
+  }
+  const pem = trim(dpopPrivateKeyPem);
+  if (!pem) {
+    throw new OfficeAceLoginError("OfficeAce 缺少 DPoP 私钥，无法续期，请重新登录", {
+      stage: "token",
+      status: 400,
+    });
+  }
+
+  const { clientId, tokenUrl } = OFFICEACE_LOGIN_CONFIG;
+  const form = new URLSearchParams({
+    client_id: clientId,
+    grant_type: "refresh_token",
+    refresh_token: token,
+  }).toString();
+  const dpop = buildDpopProof(pem, "POST", tokenUrl);
+  const call = resolveFetch(fetchImpl, proxyOptions);
+  const response = await requestJson(
+    call,
+    tokenUrl,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+        Accept: "application/json",
+        DPoP: dpop,
+      },
+      body: form,
+      signal: timeoutSignal(),
+    },
+    "token"
+  );
+  if (!response.ok) {
+    const detail = trim(response.payload?.error_description)
+      || trim(response.payload?.error_msg)
+      || trim(response.payload?.error);
+    throw new OfficeAceLoginError(
+      `OfficeAce 续期被拒（HTTP ${response.status}）${detail ? `：${detail}` : ""}`,
+      { stage: "token", status: response.status }
+    );
+  }
+
+  const payload = response.payload || {};
+  const temporary = isPlainObject(payload.credentials) ? payload.credentials : {};
+  const accessKeyId = trim(temporary.access_key_id);
+  const secretAccessKey = trim(temporary.secret_access_key);
+  if (!accessKeyId || !secretAccessKey) {
+    throw new OfficeAceLoginError("OfficeAce 续期没有返回新的临时凭据", {
+      stage: "token",
+      status: response.status,
+    });
+  }
+  const expiresAt = parseRfc3339Ms(temporary.expiration) || Date.now() + 2 * 60 * 60 * 1000;
+  const nextRefresh = trim(payload.refresh_token) || token;
+  const securityToken = trim(temporary.security_token);
+  const projectId = trim(temporary.project_id);
+
+  return {
+    refreshToken: nextRefresh,
+    expiresAt,
+    expiresIn: Math.max(1, Math.floor((expiresAt - Date.now()) / 1000)),
+    providerSpecificData: {
+      authMethod: "oauth",
+      accessKeyId,
+      secretAccessKey,
+      securityToken,
+      ...(projectId ? { projectId } : {}),
+      expiresAt,
+      refreshToken: nextRefresh,
+      dpopPrivateKeyPem: pem,
+    },
+  };
+}

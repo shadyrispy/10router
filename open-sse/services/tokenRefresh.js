@@ -23,6 +23,8 @@ import {
   refreshLobsterAiToken,
   refreshRaccoonToken,
   refreshAtomcodeToken,
+  refreshCodeArtsToken,
+  refreshOfficeAceToken,
   classifyOAuthRefreshError,
 } from "./tokenRefresh/providers.js";
 
@@ -49,6 +51,8 @@ export {
   refreshLobsterAiToken,
   refreshRaccoonToken,
   refreshAtomcodeToken,
+  refreshCodeArtsToken,
+  refreshOfficeAceToken,
   classifyOAuthRefreshError,
 };
 
@@ -212,6 +216,9 @@ const REFRESH_HANDLERS = {
   // apikey connection holding a bearer JWT + refresh token (rotates on use).
   raccoon: (c, log) => refreshRaccoonToken(c.refreshToken, log),
   atomcode: (c, log) => refreshAtomcodeToken(c.refreshToken, log, c.proxyOptions),
+  // OAuth login credentials: temp STS/DPoP material lives in providerSpecificData.
+  codearts: (c, log) => refreshCodeArtsToken(c, log),
+  officeace: (c, log) => refreshOfficeAceToken(c, log),
   vertex: vertexRefreshHandler,
   "vertex-partner": vertexRefreshHandler
 };
