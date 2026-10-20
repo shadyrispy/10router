@@ -24,6 +24,7 @@ import { XiaomiMimoExecutor } from "./xiaomi-mimo.js";
 import { MimoFreeExecutor } from "./mimo-free.js";
 import { CodeBuddyExecutor } from "./codebuddy-cn.js";
 import { CodeBuddyIntlExecutor } from "./codebuddy-intl.js";
+import { CodeArtsExecutor } from "./codearts.js";
 import { ClineExecutor } from "./cline.js";
 import { LobsterAiExecutor } from "./lobsterai.js";
 import TraeExecutor from "./trae.js";
@@ -68,6 +69,7 @@ const executors = {
   mmf: new MimoFreeExecutor(), // Alias for mimo-free
   "codebuddy-cn": new CodeBuddyExecutor(),
   "codebuddy-intl": new CodeBuddyIntlExecutor(),
+  codearts: new CodeArtsExecutor(),
   lobsterai: new LobsterAiExecutor(),
   cline: new ClineExecutor(),
   cl: new ClineExecutor(),
@@ -117,6 +119,7 @@ export { MimoFreeExecutor } from "./mimo-free.js";
 export { CodeBuddyExecutor } from "./codebuddy-cn.js";
 export { CodeBuddyIntlExecutor } from "./codebuddy-intl.js";
 export { ClineExecutor } from "./cline.js";
+export { CodeArtsExecutor } from "./codearts.js";
 export { default as TraeExecutor } from "./trae.js";
 export { default as ZedExecutor } from "./zed.js";
 export { default as WindsurfExecutor } from "./windsurf.js";

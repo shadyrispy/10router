@@ -191,7 +191,8 @@ export async function PATCH(request) {
     if (
       Object.prototype.hasOwnProperty.call(body, "raccoonCheckin") ||
       Object.prototype.hasOwnProperty.call(body, "atomcodeCheckin") ||
-      Object.prototype.hasOwnProperty.call(body, "lobsteraiCheckin")
+      Object.prototype.hasOwnProperty.call(body, "lobsteraiCheckin") ||
+      Object.prototype.hasOwnProperty.call(body, "codeartsCheckin")
     ) {
       import("@/sse/services/checkin/scheduler.js")
         .then(({ refreshCheckinScheduler }) => refreshCheckinScheduler())
