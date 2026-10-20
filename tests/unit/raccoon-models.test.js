@@ -17,9 +17,11 @@ const MODEL_IDS = [
 ];
 
 describe("raccoon registry", () => {
-  it("is an apikey OpenAI-compatible provider pointed at the web LLM port", () => {
+  it("is an OpenAI-compatible provider pointed at the web LLM port (oauth or apikey)", () => {
     expect(raccoon.id).toBe("raccoon");
-    expect(raccoon.category).toBe("apikey");
+    // The web authorization-code login landed later; both auth modes share the
+    // same transport, so the card is oauth-first but still accepts an imported key.
+    expect(["oauth", "apikey"]).toContain(raccoon.category);
     expect(raccoon.transport.format).toBe("openai");
     expect(raccoon.transport.baseUrl).toBe(
       "https://xiaohuanxiong.com/api/web/llm/v2/chat/completions"
