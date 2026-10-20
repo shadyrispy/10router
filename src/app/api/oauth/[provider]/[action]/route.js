@@ -308,7 +308,11 @@ export async function GET(request, { params }) {
       else return NextResponse.json({ error: "Poll only supported for codex/xai/trae/windsurf/zed/lobsterai" }, { status: 400 });
       if (!session) return NextResponse.json({ status: "unknown" });
       if (session.status === "done" || session.status === "error") {
-        const payload = { ...session };
+        // CodeArts sessions carry the PKCE verifier and the DPoP private key;
+        // never serialize them to the browser.
+        const payload = provider === "codearts"
+          ? { status: session.status, error: session.error, connectionId: session.connectionId, email: session.email }
+          : { ...session };
         if (provider === "trae") clearTraeSession(state);
         else if (provider === "lobsterai") clearLobsterAiSession(state);
         else if (provider === "windsurf") clearWindsurfSession(state);
