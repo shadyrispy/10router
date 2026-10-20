@@ -29,6 +29,7 @@ import {
 import { getGlmUsage } from "./usage/glm.js";
 import { getCommandCodeUsage } from "./usage/commandcode.js";
 import { getMiniMaxCodeUsage } from "./usage/minimax-code.js";
+import { getRaccoonUsage } from "./usage/raccoon.js";
 import { extractEarliestPackageExpiry } from "./usage/expiryExtractor.js";
 
 /**
@@ -93,6 +94,9 @@ const USAGE_HANDLERS = {
   commandcode: (c) => getCommandCodeUsage(c.apiKey, c.proxyOptions),
   "minimax-code": (c) => getMiniMaxCodeUsage(c.accessToken, "minimax-code", c.proxyOptions, c.providerSpecificData),
   "minimax-code-global": (c) => getMiniMaxCodeUsage(c.accessToken, "minimax-code-global", c.proxyOptions, c.providerSpecificData),
+  // Bearer JWT is stored on apiKey for an apikey-category connection; OAuth-like
+  // imports may carry it on accessToken instead. Accept both.
+  raccoon: (c) => getRaccoonUsage(c.accessToken || c.apiKey, c.proxyOptions),
   // Alibaba Token Plan（credit 订阅 key）：没有任何公开额度接口，handler 只返回
   // 一条指向百炼控制台的说明，避免漏成 "Usage API not implemented"（见 misc.js）。
   "alitp-intl": (c) => getAlibabaTokenPlanUsage("alitp-intl"),

@@ -18,6 +18,7 @@ import {
   refreshZedToken,
   refreshWindsurfToken,
   refreshMinimaxCodeToken,
+  refreshRaccoonToken,
   classifyOAuthRefreshError,
 } from "./tokenRefresh/providers.js";
 
@@ -39,6 +40,7 @@ export {
   refreshZedToken,
   refreshWindsurfToken,
   refreshMinimaxCodeToken,
+  refreshRaccoonToken,
   classifyOAuthRefreshError,
 };
 
@@ -190,6 +192,8 @@ const REFRESH_HANDLERS = {
   "kimi-coding": (c, log) => refreshKimiToken(c.refreshToken, c, log),
   "minimax-code": (c, log) => refreshMinimaxCodeToken("minimax-code", c.refreshToken, log),
   "minimax-code-global": (c, log) => refreshMinimaxCodeToken("minimax-code-global", c.refreshToken, log),
+  // apikey connection holding a bearer JWT + refresh token (rotates on use).
+  raccoon: (c, log) => refreshRaccoonToken(c.refreshToken, log),
   vertex: vertexRefreshHandler,
   "vertex-partner": vertexRefreshHandler
 };
