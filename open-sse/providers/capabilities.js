@@ -455,7 +455,7 @@ export const PROVIDER_CAPABILITIES = {
     "qwen-3.8-max":           { vision: false, reasoning: true, thinkingFormat: "openai", contextWindow: 1000000, maxOutput: 65536 },
     "GLM-5.3-Flash":          { vision: true, reasoning: true, thinkingFormat: "openai", contextWindow: 1048576, maxOutput: 131072 },
     "qwen3.8-flash":          { vision: true, reasoning: true, thinkingFormat: "openai", contextWindow: 1000000, maxOutput: 131072 },
-    "spark-x2.6-preview":     { vision: false, reasoning: true, thinkingFormat: "openai", contextWindow: 1048576, maxOutput: 131072 },
+    "spark-x2.6":     { vision: false, reasoning: true, thinkingFormat: "openai", contextWindow: 1048576, maxOutput: 131072 },
     "spark-x":                { vision: false, reasoning: true, thinkingFormat: "openai", contextWindow: 1048576, maxOutput: 65536 },
     "mimo-v2.5":              { vision: true, reasoning: true, thinkingFormat: "openai", contextWindow: 1048576, maxOutput: 131072 },
   },

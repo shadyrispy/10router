@@ -60,7 +60,7 @@ export default {
     { id: "qwen-3.8-max", name: "Qwen 3.8 Max", contextWindow: 1000000, maxOutput: 65536, reasoning: true, vision: false },
     { id: "GLM-5.3-Flash", name: "GLM 5.3 Flash", contextWindow: 1048576, maxOutput: 131072, reasoning: true, vision: true },
     { id: "qwen3.8-flash", name: "Qwen 3.8 Flash", contextWindow: 1000000, maxOutput: 131072, reasoning: true, vision: true },
-    { id: "spark-x2.6-preview", name: "Spark X2.6 Preview", contextWindow: 1048576, maxOutput: 131072, reasoning: true, vision: false },
+    { id: "spark-x2.6", name: "Spark X2.6", contextWindow: 1048576, maxOutput: 131072, reasoning: true, vision: false },
     { id: "spark-x", name: "Spark X2.5", contextWindow: 1048576, maxOutput: 65536, reasoning: true, vision: false },
     { id: "mimo-v2.5", name: "MiMo V2.5", contextWindow: 1048576, maxOutput: 131072, reasoning: true, vision: true },
   ],
