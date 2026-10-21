@@ -35,6 +35,7 @@ import { getAtomcodeUsage } from "./usage/atomcode.js";
 import { getLoomyUsage } from "./usage/loomy.js";
 import { getOfficeAceUsage } from "./usage/officeace.js";
 import { getCodeArtsUsage } from "./usage/codearts.js";
+import { getCursorUsage } from "./usage/cursor.js";
 import { extractEarliestPackageExpiry } from "./usage/expiryExtractor.js";
 
 /**
@@ -114,6 +115,7 @@ const USAGE_HANDLERS = {
   // 一条指向百炼控制台的说明，避免漏成 "Usage API not implemented"（见 misc.js）。
   "alitp-intl": (c) => getAlibabaTokenPlanUsage("alitp-intl"),
   "alitp-cn": (c) => getAlibabaTokenPlanUsage("alitp-cn"),
+  cursor: (c) => getCursorUsage(c.accessToken, c.providerSpecificData, c.proxyOptions),
 };
 
 export async function getUsageForProvider(connection, proxyOptions = null, options = {}) {

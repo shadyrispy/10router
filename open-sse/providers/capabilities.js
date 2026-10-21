@@ -1137,6 +1137,11 @@ export function aggregateComboCapabilities(comboModels, comboLookup = null, reso
   };
 }
 
+// Gemini 4 (Argon) drops sampling params and requires functionResponse-last merged user turns.
+export function isGemini4Model(model) {
+  return /(?:^|\/)gemini-4(?:$|[-.])/i.test(String(model || ""));
+}
+
 /**
  * Resolve capabilities for a model using the 4-step fallback chain,
  * merged over DEFAULT_CAPABILITIES so the result is always complete.
