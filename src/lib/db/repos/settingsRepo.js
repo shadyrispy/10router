@@ -92,11 +92,6 @@ const DEFAULT_SETTINGS = {
   checkinTime: "09:00",
   // Experimental: auto daily check-in for CodeBuddy CN accounts.
   codeBuddyCheckin: false,
-  // Experimental: intl daily active-session probe (campaign credits).
-  // RETIRED: CreditDaddy removed this mechanism and the scheduler no longer
-  // runs it. Kept default-false (and the UI toggle disabled) only so existing
-  // settings rows stay readable; do not re-enable without a fresh measurement.
-  codeBuddyIntlSession: false,
   // Experimental: auto compensation & gift claim for CodeBuddy CN accounts.
   codeBuddyCompensation: false,
   // Daily-done memo for both passes: { [connectionId]: "YYYY-MM-DD" } (local).

@@ -157,29 +157,6 @@ export default function ExperimentalClient() {
               />
             </div>
 
-            {/* CodeBuddy intl daily active-session probe — RETIRED: CreditDaddy
-                removed the same mechanism and the scheduler no longer sends the
-                daily probe. The toggle stays (default off, disabled) so the
-                stored setting remains visible/readable; nothing is sent. */}
-            <div className="flex items-start sm:items-center justify-between gap-4 pt-4 border-t border-border/50">
-              <div className="flex-1 min-w-0">
-                <p className="font-medium text-sm sm:text-base">{translate("CodeBuddy daily active session")}</p>
-                <p className="text-xs sm:text-sm text-text-muted">
-                  {translate("Retired — no daily probe is sent (CreditDaddy removed this mechanism)")}
-                </p>
-              </div>
-              <Toggle
-                checked={false}
-                disabled
-                onChange={() =>
-                  patch(
-                    { codeBuddyIntlSession: false },
-                    "Error toggling codebuddy intl daily session:"
-                  )
-                }
-              />
-            </div>
-
             {/* CodeBuddy CN auto daily check-in (shares the UI slot with import/export) */}
             <div className="flex items-start sm:items-center justify-between gap-4 pt-4 border-t border-border/50">
               <div className="flex-1 min-w-0">
