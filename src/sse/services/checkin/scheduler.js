@@ -138,7 +138,7 @@ export async function runCheckinSweep({
   sweeping = true;
   const results = [];
   try {
-    const { getSettings, getProviderConnections, getChannelBlock } = await import("../../../lib/localDb.js");
+    const { getSettings, getProviderConnections, getChannelBlock, updateProviderConnection } = await import("../../../lib/localDb.js");
     const { recordCheckinRun, hasCheckinSuccessToday, pruneCheckinRuns } = await import(
       "../../../lib/db/repos/checkinRepo.js"
     );
@@ -195,6 +195,13 @@ export async function runCheckinSweep({
           at: new Date().toISOString(),
         };
         if (!dryRun) await recordCheckinRun(record).catch(() => {});
+        // A check-in can change the balance (daily pool refill, reward claim).
+        // Invalidate the cached earliest-expiry so the existing SWR path
+        // re-reads usage on the next selection instead of ranking today's
+        // pool on yesterday's numbers. No network call here.
+        if (!dryRun && (record.status === "ok" || record.status === "already")) {
+          await updateProviderConnection(conn.id, { quotaCheckedAt: null }).catch(() => {});
+        }
         results.push({
           ...base,
           status: record.status,

@@ -11,6 +11,7 @@
  */
 
 import { proxyAwareFetch } from "../../utils/proxyFetch.js";
+import { nextDailyResetIso } from "../../utils/dailyReset.js";
 
 const LOOMY_BASE_URL = "https://loomyad.xunfei.cn";
 const RECORDS_PATH =
@@ -41,7 +42,7 @@ const messageOf = (payload) => {
 
 const tokenOf = (session) => String(session || "").trim().replace(/^Bearer\s+/i, "");
 
-function creditRow(name, balance, { daily = false } = {}) {
+function creditRow(name, balance, { daily = false, resetAt = null } = {}) {
   return {
     name,
     used: 0,
@@ -50,8 +51,28 @@ function creditRow(name, balance, { daily = false } = {}) {
     remainingPercentage: balance > 0 ? 100 : 0,
     isCreditBalance: true,
     recurring: daily,
+    ...(resetAt ? { resetAt } : {}),
     currency: "points",
   };
+}
+
+/**
+ * Pure row builder (exported for tests).
+ *
+ * The daily pool resets at the provider's midnight; only a positive balance
+ * gets a resetAt. A zero daily pool has nothing to spend, so it must not pull
+ * its account to the front of the earliest-expiry queue.
+ */
+export function buildLoomyQuotas(permanent, daily, nowMs = Date.now()) {
+  const quotas = {};
+  const permanentRow = creditRow("永久积分 (积分)", permanent ?? 0);
+  const dailyRow = creditRow("每日赠送积分 (积分)", daily ?? 0, {
+    daily: true,
+    resetAt: (daily ?? 0) > 0 ? nextDailyResetIso(nowMs) : null,
+  });
+  quotas[permanentRow.name] = permanentRow;
+  quotas[dailyRow.name] = dailyRow;
+  return quotas;
 }
 
 export async function getLoomyUsage(session, proxyOptions = null) {
@@ -120,11 +141,5 @@ export async function getLoomyUsage(session, proxyOptions = null) {
     return { message: "Loomy 积分响应里没有 balance / dailyBalance 字段。" };
   }
 
-  const quotas = {};
-  const permanentRow = creditRow("永久积分 (积分)", permanent ?? 0);
-  const dailyRow = creditRow("每日赠送积分 (积分)", daily ?? 0, { daily: true });
-  quotas[permanentRow.name] = permanentRow;
-  quotas[dailyRow.name] = dailyRow;
-
-  return { quotas };
+  return { quotas: buildLoomyQuotas(permanent, daily) };
 }

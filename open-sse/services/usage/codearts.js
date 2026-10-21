@@ -9,6 +9,7 @@
  * profile (`4004 benefit not found`) is normal, not an error. Only when both
  * fail is the card an error.
  */
+import { nextDailyResetIso } from "../../utils/dailyReset.js";
 import {
   CODEARTS_BASE_URL,
   CODEARTS_BENEFIT_BALANCE_PATH,
@@ -82,7 +83,7 @@ export function parseCodeArtsStatistics(payload) {
  * (normal for accounts that never registered a benefit profile); anything else
  * non-`0000` is an error.
  */
-export function parseCodeArtsBenefit(payload) {
+export function parseCodeArtsBenefit(payload, nowMs = Date.now()) {
   const root = asObject(payload);
   if (!root) return { error: "福利余额响应不是 JSON 对象" };
   const code = String(root.error_code || "");
@@ -112,7 +113,12 @@ export function parseCodeArtsBenefit(payload) {
       total: unlimited ? null : limit,
       remaining,
       remainingPercentage: unlimited ? 100 : (limit > 0 ? Math.round((remaining / limit) * 100) : 0),
-      resetAt: null,
+      // The benefit pool is refilled every Beijing day. A positive balance is
+      // an expiring asset and must rank ahead of packs that expire later; an
+      // empty pool has nothing to spend and must not rank the account.
+      ...(!unlimited && remaining > 0
+        ? { resetAt: nextDailyResetIso(nowMs), recurring: true }
+        : { resetAt: null, recurring: false }),
       isCreditBalance: false,
     },
   };
